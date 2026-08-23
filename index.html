@@ -365,7 +365,7 @@ function renderPhoto(){
   const contentW=panelW-pad*2;
 
   const addressSize=48; /* 36pt */
-  let bodySize=Math.max(18,Math.min(34,Math.round(W*.023)));
+  let bodySize=32; /* 24pt */
   const gap=Math.max(7,Math.round(bodySize*.18));
   const blockGap=Math.max(10,Math.round(bodySize*.28));
   const topPad=Math.max(22,Math.round(bodySize*.7));
@@ -387,7 +387,7 @@ function renderPhoto(){
   const latLonText=lat+"   |   "+lon;
 
   let latLonSize=bodySize;
-  while(latLonSize>10){
+  while(latLonSize>24){
     ctx.font=normalFont(latLonSize);
     if(ctx.measureText(latLonText).width<=contentW)break;
     latLonSize--;
