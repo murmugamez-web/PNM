@@ -19,9 +19,9 @@ main{max-width:1100px;margin:15px auto;padding:0 12px}
 #placeholder .icon{font-size:58px}
 #liveOverlay{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:14px;color:#000;padding:12px;font-family:Georgia,serif;pointer-events:none;z-index:4}
 .liveTitle{text-align:center;font-size:clamp(18px,3vw,32px);font-weight:900;font-style:italic;margin-bottom:10px}
-.liveTop{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.liveTop{display:block}
 .liveCell{min-width:0}
-.liveCell.right{border-left:1.5px solid #FBBC09;padding-left:12px}
+.liveCell.right{display:none}
 .liveLine{font-weight:800;font-size:clamp(12px,1.8vw,19px);line-height:1.2;margin:3px 0;overflow-wrap:anywhere}
 .liveSecond{border-top:1.5px solid #FBBC09;margin-top:10px;padding-top:8px}
 .liveThird{border-top:1.5px solid #FBBC09;margin-top:8px;padding-top:7px}
@@ -169,27 +169,25 @@ function updateLive(){
  const n=new Date();
  liveTitle.textContent="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
 
- liveTopLeft.innerHTML=
-   '<div class="liveLine">'+esc(document.getElementById("address")?.textContent||window.lastAddress||"—")+'</div>'+
-   '<div class="liveLine">LATITUDE: '+esc(window.lastLat||"—")+'</div>';
+ const liveLines=[
+   window.lastPlus||"—",
+   window.lastAddress||"—",
+   "LATITUDE: "+(window.lastLat||"—"),
+   "LONGITUDE: "+(window.lastLon||"—"),
+   n.toLocaleDateString(undefined,{weekday:"long"})+
+     " | DATE: "+n.toLocaleDateString("en-GB")+
+     " | TIME: "+n.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true})+
+     " | "+gmt(),
+   "ACCURACY: "+(window.lastAccuracy||"—")
+ ];
 
- liveTopRight.innerHTML=
-   '<div class="liveLine">'+esc(window.lastPlus||"—")+'</div>'+
-   '<div class="liveLine">LONGITUDE: '+esc(window.lastLon||"—")+'</div>';
+ if(additional.value.trim())liveLines.push(additional.value.trim());
+ if(visitedBy.value.trim())liveLines.push("Visited By: "+visitedBy.value.trim());
 
- liveSecond.innerHTML=
-   '<div class="liveLine">'+
-   esc(n.toLocaleDateString(undefined,{weekday:"long"}))+
-   ' | DATE: '+esc(n.toLocaleDateString())+
-   ' | TIME: '+esc(n.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true}))+
-   ' | '+gmt()+
-   '</div>'+
-   '<div class="liveLine">ACCURACY: '+esc(window.lastAccuracy||"—")+'</div>';
-
- let b="";
- if(additional.value.trim())b+='<div class="liveLine">'+esc(additional.value.trim())+'</div>';
- if(visitedBy.value.trim())b+='<div class="liveLine">Visited By: '+esc(visitedBy.value.trim())+'</div>';
- liveThird.innerHTML=b;
+ liveTopLeft.innerHTML=liveLines.map(x=>'<div class="liveLine">'+esc(x)+'</div>').join("");
+ liveTopRight.innerHTML="";
+ liveSecond.innerHTML="";
+ liveThird.innerHTML="";
 
  liveOverlay.style.display=stream?"block":"none";
 }
@@ -440,45 +438,58 @@ function capturePhoto(){
  const lat=window.lastLat||"—";
  const lon=window.lastLon||"—";
  const accuracy=window.lastAccuracy||"—";
+
  const day=now.toLocaleDateString(undefined,{weekday:"long"});
- const date=now.toLocaleDateString();
+ const date=now.toLocaleDateString("en-GB");
  const time=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true});
  const zone=gmt();
+
  const extra=additional.value.trim();
  const visitor=visitedBy.value.trim();
 
  const landscape=canvas.width>=canvas.height;
 
  /*
-   FIX:
-   The captured overlay now uses four explicit blocks:
-   1) Title
-   2) Top section:
-        Plus Code | Address
-        Latitude | Longitude
-   3) Second section:
-        Day | Date | Time | GMT
-        Accuracy
-   4) Third section:
-        Additional information
-        Visited By: name
-   Every block gets its own calculated height, so nothing overlaps.
- */
- const panelW=landscape?canvas.width*.92:canvas.width*.88;
- const panelX=(canvas.width-panelW)/2;
- const pad=Math.max(22,canvas.width*.022);
- const contentW=panelW-pad*2;
- const colGap=Math.max(24,contentW*.035);
- const colW=(contentW-colGap)/2;
+   UNIFIED INFORMATION BOX
+   ------------------------
+   All GPS/photo information is now in ONE continuous section.
+   There are NO vertical columns and NO section dividers.
 
- let titleSize=landscape?Math.max(42,Math.min(58,canvas.width*.036)):Math.max(38,Math.min(52,canvas.width*.043));
- let bodySize=landscape?Math.max(23,Math.min(36,canvas.width*.023)):Math.max(20,Math.min(32,canvas.width*.028));
+   Order:
+   Title + flag
+   Plus Code
+   Address
+   Latitude
+   Longitude
+   Day | Date | Time | GMT
+   Accuracy
+   Additional text
+   Visited By
+   Company logo at bottom-right
+ */
+
+ const panelW=landscape?canvas.width*.90:canvas.width*.88;
+ const panelX=(canvas.width-panelW)/2;
+ const pad=Math.max(24,canvas.width*.025);
+ const contentW=panelW-pad*2;
+
+ let titleSize=landscape
+   ?Math.max(42,Math.min(58,canvas.width*.036))
+   :Math.max(38,Math.min(52,canvas.width*.043));
+
+ let bodySize=landscape
+   ?Math.max(23,Math.min(36,canvas.width*.023))
+   :Math.max(20,Math.min(32,canvas.width*.028));
+
  const addressSize=32; // 24pt
- const titleGap=Math.max(20,bodySize*.55);
- const lineGap=Math.max(8,bodySize*.20);
- const sectionGap=Math.max(16,bodySize*.45);
- const topPad=Math.max(24,bodySize*.62);
- const bottomPad=Math.max(22,bodySize*.55);
+ const lineGap=Math.max(8,bodySize*.22);
+ const titleGap=Math.max(22,bodySize*.65);
+ const itemGap=Math.max(7,bodySize*.20);
+ const bottomPad=Math.max(26,bodySize*.65);
+ const topPad=Math.max(26,bodySize*.70);
+
+ const bodyFont=()=>`bold ${bodySize}px Georgia,serif`;
+ const addressFont=()=>`bold ${addressSize}px Georgia,serif`;
 
  function wrap(text,font,maxWidth){
    ctx.font=font;
@@ -488,6 +499,7 @@ function capturePhoto(){
 
    for(const word of words){
      const test=line?line+" "+word:word;
+
      if(ctx.measureText(test).width<=maxWidth){
        line=test;
      }else{
@@ -515,98 +527,124 @@ function capturePhoto(){
    return lines;
  }
 
- function fitSingleLine(text,fontSize,maxWidth,minSize){
-   let s=fontSize;
-   while(s>minSize){
-     ctx.font="bold "+s+"px Georgia,serif";
-     if(ctx.measureText(text).width<=maxWidth)break;
-     s--;
+ function fitTitle(){
+   let size=titleSize;
+   const title="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
+
+   while(size>30){
+     ctx.font=`bold italic ${size}px Georgia,serif`;
+     if(ctx.measureText(title).width<=contentW)break;
+     size--;
    }
-   return s;
+
+   return size;
  }
 
- // Title + country flag.
- const titleText="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
- titleSize=fitSingleLine(titleText,titleSize,contentW,30);
+ const finalTitleSize=fitTitle();
+ const title="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
 
- // TOP SECTION.
- const addressFont="bold "+addressSize+"px Georgia,serif";
- const bodyFont="bold "+bodySize+"px Georgia,serif";
+ /*
+   Build every line first.
+   This is the important overlap fix:
+   the information-box height is based on the exact number
+   of wrapped lines before anything is drawn.
+ */
+ let blocks=[];
 
- const topLeftRow1=wrap(plus,bodyFont,colW);
- const topRightRow1=wrap(address,addressFont,colW);
+ function addBlock(text,font,size=bodySize,spaceAfter=itemGap){
+   const lines=wrap(text,font,contentW);
+   blocks.push({lines,font,size,spaceAfter});
+ }
 
- const topLeftRow2=wrap("LATITUDE: "+lat,bodyFont,colW);
- const topRightRow2=wrap("LONGITUDE: "+lon,bodyFont,colW);
-
- const row1Height=Math.max(
-   topLeftRow1.length* (bodySize+lineGap),
-   topRightRow1.length*(addressSize+lineGap)
+ // All data in ONE unified vertical section.
+ addBlock(plus,bodyFont());
+ addBlock(address,addressFont(),addressSize,itemGap+4);
+ addBlock("LATITUDE: "+lat,bodyFont());
+ addBlock("LONGITUDE: "+lon,bodyFont());
+ addBlock(
+   day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
+   bodyFont()
  );
- const row2Height=Math.max(
-   topLeftRow2.length*(bodySize+lineGap),
-   topRightRow2.length*(bodySize+lineGap)
- );
- const topSectionHeight=row1Height+Math.max(12,bodySize*.35)+row2Height;
+ addBlock("ACCURACY: "+accuracy,bodyFont());
 
- // SECOND SECTION.
- const dateLine=""+day+" | DATE: "+date+" | TIME: "+time+" | "+zone;
- let dateFontSize=bodySize;
- dateFontSize=fitSingleLine(dateLine,dateFontSize,contentW,15);
- const dateFont="bold "+dateFontSize+"px Georgia,serif";
- const accuracyLine="ACCURACY: "+accuracy;
- const accuracyLines=wrap(accuracyLine,bodyFont,contentW);
- const secondSectionHeight=
-   dateFontSize+lineGap+
-   Math.max(accuracyLines.length*(bodySize+lineGap),bodySize+lineGap);
+ if(extra){
+   addBlock(extra,bodyFont(),bodySize,itemGap+2);
+ }
 
- // THIRD SECTION.
- const thirdLines=[];
- if(extra)thirdLines.push(...wrap(extra,bodyFont,contentW));
- if(visitor)thirdLines.push(...wrap("Visited By: "+visitor,bodyFont,contentW));
- const thirdSectionHeight=
-   thirdLines.length*(bodySize+lineGap);
+ if(visitor){
+   addBlock("Visited By: "+visitor,bodyFont(),bodySize,itemGap+2);
+ }
 
- const maxPanelH=landscape?canvas.height*.52:canvas.height*.70;
+ function blockHeight(block){
+   return block.lines.length*(block.size+lineGap)+block.spaceAfter;
+ }
+
+ let contentHeight=blocks.reduce((sum,b)=>sum+blockHeight(b),0);
+
  let panelH=topPad+
-   titleSize+
+   finalTitleSize+
    titleGap+
-   topSectionHeight+
-   sectionGap+
-   secondSectionHeight+
-   (thirdLines.length?sectionGap:0)+
-   thirdSectionHeight+
+   contentHeight+
    bottomPad;
 
- // Give the layout more room before shrinking the body font.
+ /*
+   If the information does not fit comfortably, reduce normal text.
+   Address remains targeted at 24pt unless the photograph is unusually small.
+ */
+ const maxPanelH=landscape?canvas.height*.55:canvas.height*.76;
+
  while(panelH>maxPanelH && bodySize>16){
    bodySize--;
-   panelH=topPad+titleSize+titleGap+
-     topSectionHeight+sectionGap+secondSectionHeight+
-     (thirdLines.length?sectionGap:0)+thirdSectionHeight+bottomPad;
+   blocks=[];
+
+   const bf=bodyFont();
+   addBlock(plus,bf);
+   addBlock(address,addressFont(),addressSize,itemGap+4);
+   addBlock("LATITUDE: "+lat,bf);
+   addBlock("LONGITUDE: "+lon,bf);
+   addBlock(
+     day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
+     bf
+   );
+   addBlock("ACCURACY: "+accuracy,bf);
+
+   if(extra)addBlock(extra,bf,bodySize,itemGap+2);
+   if(visitor)addBlock("Visited By: "+visitor,bf,bodySize,itemGap+2);
+
+   contentHeight=blocks.reduce((sum,b)=>sum+blockHeight(b),0);
+   panelH=topPad+finalTitleSize+titleGap+contentHeight+bottomPad;
  }
- panelH=Math.max(panelH,260);
 
  const panelY=canvas.height-panelH-24;
 
- // Draw the camera frame.
+ // Draw camera frame.
  if(nativeZoom || zoomLevel<=1){
-   ctx.drawImage(video,border,border,video.videoWidth,video.videoHeight);
+   ctx.drawImage(
+     video,
+     border,
+     border,
+     video.videoWidth,
+     video.videoHeight
+   );
  }else{
    const z=zoomLevel;
    const sw=video.videoWidth/z;
    const sh=video.videoHeight/z;
+
    ctx.drawImage(
      video,
      (video.videoWidth-sw)/2,
      (video.videoHeight-sh)/2,
-     sw,sh,
-     border,border,
-     video.videoWidth,video.videoHeight
+     sw,
+     sh,
+     border,
+     border,
+     video.videoWidth,
+     video.videoHeight
    );
  }
 
- // Deep-maroon border.
+ // Deep-maroon photo border.
  ctx.lineWidth=border;
  ctx.strokeStyle="#A20404";
  ctx.strokeRect(
@@ -616,7 +654,7 @@ function capturePhoto(){
    video.videoHeight+border
  );
 
- // Information box.
+ // Unified information box.
  ctx.fillStyle="rgba(255,255,255,.50)";
  ctx.beginPath();
  ctx.roundRect(panelX,panelY,panelW,panelH,20);
@@ -626,108 +664,42 @@ function capturePhoto(){
  ctx.strokeStyle="#FBBC09";
  ctx.stroke();
 
- // TITLE
- ctx.fillStyle="#000";
+ // Title.
+ ctx.fillStyle="#000000";
  ctx.textAlign="center";
- ctx.font="bold italic "+titleSize+"px Georgia,serif";
+ ctx.font=`bold italic ${finalTitleSize}px Georgia,serif`;
  ctx.fillText(
-   titleText,
+   title,
    panelX+panelW/2,
-   panelY+topPad+titleSize
+   panelY+topPad+finalTitleSize
  );
 
+ // All information starts below title.
  ctx.textAlign="left";
 
- const contentTop=panelY+topPad+titleSize+titleGap;
- const leftX=panelX+pad;
- const rightX=leftX+colW+colGap;
+ let y=panelY+topPad+finalTitleSize+titleGap;
 
- // ---------- TOP SECTION ----------
- let yLeft=contentTop;
- let yRight=contentTop;
+ for(const block of blocks){
+   ctx.font=block.font;
 
- ctx.font=bodyFont;
- for(const line of topLeftRow1){
-   ctx.fillText(line,leftX,yLeft);
-   yLeft+=bodySize+lineGap;
- }
-
- ctx.font=addressFont;
- for(const line of topRightRow1){
-   ctx.fillText(line,rightX,yRight);
-   yRight+=addressSize+lineGap;
- }
-
- const row2Start=contentTop+row1Height+Math.max(12,bodySize*.35);
-
- ctx.font=bodyFont;
- yLeft=row2Start;
- yRight=row2Start;
-
- for(const line of topLeftRow2){
-   ctx.fillText(line,leftX,yLeft);
-   yLeft+=bodySize+lineGap;
- }
-
- for(const line of topRightRow2){
-   ctx.fillText(line,rightX,yRight);
-   yRight+=bodySize+lineGap;
- }
-
- // Divider between columns only inside TOP section.
- ctx.strokeStyle="#FBBC09";
- ctx.lineWidth=1.5;
- ctx.beginPath();
- ctx.moveTo(
-   panelX+panelW/2,
-   contentTop-bodySize*.7
- );
- ctx.lineTo(
-   panelX+panelW/2,
-   contentTop+topSectionHeight-bodySize*.2
- );
- ctx.stroke();
-
- // Divider between TOP and SECOND sections.
- let secondY=contentTop+topSectionHeight+sectionGap*.45;
- ctx.beginPath();
- ctx.moveTo(panelX+pad,secondY-bodySize*.7);
- ctx.lineTo(panelX+panelW-pad,secondY-bodySize*.7);
- ctx.stroke();
-
- // ---------- SECOND SECTION ----------
- ctx.font=dateFont;
- ctx.fillText(dateLine,leftX,secondY);
-
- let accuracyY=secondY+dateFontSize+lineGap;
- ctx.font=bodyFont;
- for(const line of accuracyLines){
-   ctx.fillText(line,leftX,accuracyY);
-   accuracyY+=bodySize+lineGap;
- }
-
- // Divider before THIRD section.
- if(thirdLines.length){
-   const thirdY=secondY+secondSectionHeight+sectionGap*.45;
-
-   ctx.beginPath();
-   ctx.moveTo(panelX+pad,thirdY-bodySize*.7);
-   ctx.lineTo(panelX+panelW-pad,thirdY-bodySize*.7);
-   ctx.stroke();
-
-   ctx.font=bodyFont;
-   let ty=thirdY;
-
-   for(const line of thirdLines){
-     ctx.fillText(line,leftX,ty);
-     ty+=bodySize+lineGap;
+   for(const line of block.lines){
+     ctx.fillText(line,panelX+pad,y);
+     y+=block.size+lineGap;
    }
+
+   y+=block.spaceAfter;
  }
 
- // Company logo is anchored to the bottom-right corner.
+ /*
+   Company logo:
+   fixed to bottom-right inside the unified information box.
+   It does not participate in the text flow, so it cannot overlap text
+   because the box has dedicated bottom padding.
+ */
  if(logoImage){
    const maxLogoW=Math.min(panelW*.18,180);
-   const maxLogoH=Math.min(panelH*.15,100);
+   const maxLogoH=Math.min(panelH*.14,100);
+
    const scale=Math.min(
      maxLogoW/logoImage.width,
      maxLogoH/logoImage.height,
@@ -780,7 +752,6 @@ function capturePhoto(){
    document.body.appendChild(a);
    a.click();
    a.remove();
-
  },"image/jpeg",.94);
 }
 ready.addEventListener("click",async()=>{
