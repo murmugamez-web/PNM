@@ -87,7 +87,6 @@ input[type=file]{background:#f8fafc}
   <div class="controls">
     <button id="ready">READY</button>
     <button id="switchCamera" class="secondary hidden">SWITCH CAMERA</button>
-    <button id="rotatePhoto" class="secondary hidden">ROTATE PHOTO</button>
     <button id="zoomOut" class="zoom hidden">−</button>
     <span id="zoomText" class="zoomText hidden">Zoom 1.0×</span>
     <button id="zoomIn" class="zoom hidden">+</button>
@@ -130,7 +129,6 @@ const zoomOut=document.getElementById("zoomOut");
 const zoomIn=document.getElementById("zoomIn");
 const zoomText=document.getElementById("zoomText");
 const capture=document.getElementById("capture");
-const rotatePhoto=document.getElementById("rotatePhoto");
 const additional=document.getElementById("additional");
 const visited=document.getElementById("visited");
 const logo=document.getElementById("logo");
@@ -145,7 +143,10 @@ let stream=null;
 let gpsTimer=null;
 let facing="environment";
 let zoom=1;
-let outputRotation=0; // 0 = portrait/native, 90 = landscape, 180, 270
+let outputRotation=0; // Automatically detected: 0, 90, 180, 270
+let deviceAngle=0;
+let orientationListenerStarted=false;
+let motionPermissionRequested=false;
 let logoImage=null;
 let lastObjectUrl=null;
 
@@ -345,7 +346,6 @@ async function startCamera(){
     liveBox.style.display="block";
 
     switchCamera.classList.remove("hidden");
-    rotatePhoto.classList.remove("hidden");
     zoomOut.classList.remove("hidden");
     zoomIn.classList.remove("hidden");
     zoomText.classList.remove("hidden");
@@ -380,29 +380,76 @@ async function switchCameraMode(){
 }
 
 /* =========================================================
-   OUTPUT ROTATION
-   This rotates the preview/final photo independently of the
-   phone's system auto-rotate setting.
+   AUTOMATIC PHONE ORIENTATION
    ========================================================= */
-function rotateOutput(){
-  outputRotation=(outputRotation+90)%360;
+function normalizeOrientationAngle(angle){
+  angle=((Number(angle)||0)%360+360)%360;
+  if(angle<45 || angle>=315) return 0;
+  if(angle<135) return 90;
+  if(angle<225) return 180;
+  return 270;
+}
 
-  /*
-    Keep the live camera upright visually. The actual final canvas
-    is rotated during capture, so the phone's auto-rotate setting
-    is not required.
-  */
-  video.style.transform="scale("+zoom+")";
+function updateOrientationFromScreen(){
+  try{
+    if(screen.orientation &&
+       Number.isFinite(screen.orientation.angle)){
+      const a=normalizeOrientationAngle(screen.orientation.angle);
+      deviceAngle=a;
+      outputRotation=a;
+      updateLiveOverlay();
+    }
+  }catch{}
+}
 
-  const names={
-    0:"Portrait",
-    90:"Landscape",
-    180:"Portrait",
-    270:"Landscape"
-  };
+function handleDeviceOrientation(event){
+  const beta=Number(event.beta);
+  const gamma=Number(event.gamma);
+  if(!Number.isFinite(beta)||!Number.isFinite(gamma)) return;
 
-  rotatePhoto.textContent="ROTATE PHOTO ("+names[outputRotation]+")";
-  setStatus("Photo orientation: "+names[outputRotation]);
+  let a=deviceAngle;
+  if(Math.abs(gamma)>35){
+    a=gamma>0?90:270;
+  }else if(Math.abs(beta)>135){
+    a=180;
+  }else{
+    a=0;
+  }
+
+  if(a!==deviceAngle){
+    deviceAngle=a;
+    outputRotation=a;
+    updateLiveOverlay();
+  }
+}
+
+async function startAutomaticOrientation(){
+  if(motionPermissionRequested) return;
+  motionPermissionRequested=true;
+
+  try{
+    if(typeof DeviceOrientationEvent!=="undefined" &&
+       typeof DeviceOrientationEvent.requestPermission==="function"){
+      const result=await DeviceOrientationEvent.requestPermission();
+      if(result!=="granted"){
+        setStatus("Motion permission was not granted. Automatic photo orientation may be unavailable.");
+        return;
+      }
+    }
+  }catch{}
+
+  try{
+    window.addEventListener("deviceorientation",handleDeviceOrientation,true);
+  }catch{}
+
+  try{
+    if(screen.orientation){
+      screen.orientation.addEventListener("change",updateOrientationFromScreen);
+    }
+    window.addEventListener("orientationchange",updateOrientationFromScreen);
+  }catch{}
+
+  updateOrientationFromScreen();
 }
 
 /* =========================================================
@@ -768,6 +815,10 @@ function renderFinalPhoto(){
   /*
     90° / 270° rotation swaps the final canvas width and height.
     This is independent of the device auto-rotate setting.
+  */
+  /*
+    outputRotation is supplied automatically by the phone's
+    orientation sensor. No manual rotate button is required.
   */
   const rotated=
     outputRotation===90 ||
@@ -1158,7 +1209,7 @@ function renderFinalPhoto(){
   const panelY=
     Math.max(
       border+8,
-      H-panelH-Math.max(18,H*.018)
+      H-panelH-Math.max(18,H*.025)
     );
 
   /* ---------------------------------------------------------
@@ -1424,9 +1475,6 @@ ready.addEventListener(
     }
 
     ready.disabled=true;
-    outputRotation=0;
-    rotatePhoto.textContent="ROTATE PHOTO";
-
     const cameraStarted=
       await startCamera();
 
@@ -1435,6 +1483,12 @@ ready.addEventListener(
       ready.disabled=false;
       return;
     }
+
+    await startAutomaticOrientation();
+    updateOrientationFromScreen();
+
+    await requestMotionPermissionIfNeeded();
+    updateOutputOrientationFromScreen();
 
     getGPS();
 
@@ -1461,10 +1515,6 @@ switchCamera.addEventListener(
   switchCameraMode
 );
 
-rotatePhoto.addEventListener(
-  "click",
-  rotateOutput
-);
 
 zoomOut.addEventListener(
   "click",
