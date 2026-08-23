@@ -423,17 +423,15 @@ function wrap(ctx,text,font,maxWidth){
 }
 
 function capturePhoto(){
- if(!stream||!video.videoWidth){
+ if(!stream || !video.videoWidth){
    msg("Camera is not ready. Press READY first.");
    return;
  }
 
  const canvas=document.createElement("canvas");
  const border=Math.max(10,Math.round(video.videoWidth*.008));
-
  canvas.width=video.videoWidth+border*2;
  canvas.height=video.videoHeight+border*2;
-
  const ctx=canvas.getContext("2d");
 
  const now=new Date();
@@ -442,96 +440,157 @@ function capturePhoto(){
  const lat=window.lastLat||"—";
  const lon=window.lastLon||"—";
  const accuracy=window.lastAccuracy||"—";
-
  const day=now.toLocaleDateString(undefined,{weekday:"long"});
  const date=now.toLocaleDateString();
  const time=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true});
- const timezone=gmt();
-
+ const zone=gmt();
  const extra=additional.value.trim();
  const visitor=visitedBy.value.trim();
 
  const landscape=canvas.width>=canvas.height;
 
- const panelW=landscape?canvas.width*.90:canvas.width*.88;
+ /*
+   FIX:
+   The captured overlay now uses four explicit blocks:
+   1) Title
+   2) Top section:
+        Plus Code | Address
+        Latitude | Longitude
+   3) Second section:
+        Day | Date | Time | GMT
+        Accuracy
+   4) Third section:
+        Additional information
+        Visited By: name
+   Every block gets its own calculated height, so nothing overlaps.
+ */
+ const panelW=landscape?canvas.width*.92:canvas.width*.88;
  const panelX=(canvas.width-panelW)/2;
- const pad=Math.max(24,canvas.width*.025);
+ const pad=Math.max(22,canvas.width*.022);
+ const contentW=panelW-pad*2;
+ const colGap=Math.max(24,contentW*.035);
+ const colW=(contentW-colGap)/2;
 
- const fontSize=landscape?Math.max(25,canvas.width*.023):Math.max(22,canvas.width*.030);
+ let titleSize=landscape?Math.max(42,Math.min(58,canvas.width*.036)):Math.max(38,Math.min(52,canvas.width*.043));
+ let bodySize=landscape?Math.max(23,Math.min(36,canvas.width*.023)):Math.max(20,Math.min(32,canvas.width*.028));
  const addressSize=32; // 24pt
- const titleSize=landscape?Math.max(42,canvas.width*.035):Math.max(38,canvas.width*.045);
+ const titleGap=Math.max(20,bodySize*.55);
+ const lineGap=Math.max(8,bodySize*.20);
+ const sectionGap=Math.max(16,bodySize*.45);
+ const topPad=Math.max(24,bodySize*.62);
+ const bottomPad=Math.max(22,bodySize*.55);
 
- const lineGap=Math.max(9,fontSize*.22);
- const addressGap=Math.max(10,addressSize*.20);
- const sectionGap=Math.max(22,fontSize*.55);
- const topPad=Math.max(25,fontSize*.65);
- const bottomPad=Math.max(24,fontSize*.60);
+ function wrap(text,font,maxWidth){
+   ctx.font=font;
+   const words=String(text).split(/\s+/);
+   const lines=[];
+   let line="";
 
- const contentWidth=panelW-pad*2;
- const colGap=Math.max(22,contentWidth*.035);
- const colW=(contentWidth-colGap)/2;
+   for(const word of words){
+     const test=line?line+" "+word:word;
+     if(ctx.measureText(test).width<=maxWidth){
+       line=test;
+     }else{
+       if(line)lines.push(line);
 
- const titleFont="bold italic "+titleSize+"px Georgia,serif";
- const normalFont="bold "+fontSize+"px Georgia,serif";
+       if(ctx.measureText(word).width>maxWidth){
+         let part="";
+         for(const ch of word){
+           const candidate=part+ch;
+           if(ctx.measureText(candidate).width<=maxWidth){
+             part=candidate;
+           }else{
+             if(part)lines.push(part);
+             part=ch;
+           }
+         }
+         line=part;
+       }else{
+         line=word;
+       }
+     }
+   }
+
+   if(line)lines.push(line);
+   return lines;
+ }
+
+ function fitSingleLine(text,fontSize,maxWidth,minSize){
+   let s=fontSize;
+   while(s>minSize){
+     ctx.font="bold "+s+"px Georgia,serif";
+     if(ctx.measureText(text).width<=maxWidth)break;
+     s--;
+   }
+   return s;
+ }
+
+ // Title + country flag.
+ const titleText="GPS PHOTO: GEO TAGGING "+flag(countryCode);
+ titleSize=fitSingleLine(titleText,titleSize,contentW,30);
+
+ // TOP SECTION.
  const addressFont="bold "+addressSize+"px Georgia,serif";
+ const bodyFont="bold "+bodySize+"px Georgia,serif";
 
- let title="GPS PHOTO: GEO TAGGING "+flag(countryCode);
+ const topLeftRow1=wrap(plus,bodyFont,colW);
+ const topRightRow1=wrap(address,addressFont,colW);
 
- ctx.font=titleFont;
- while(titleSize>30&&ctx.measureText(title).width>contentWidth){
-   titleSize--;
-   ctx.font="bold italic "+titleSize+"px Georgia,serif";
- }
+ const topLeftRow2=wrap("LATITUDE: "+lat,bodyFont,colW);
+ const topRightRow2=wrap("LONGITUDE: "+lon,bodyFont,colW);
 
- const topLeft=[
-   ...wrap(ctx,plus,normalFont,colW),
-   ...wrap(ctx,"LATITUDE: "+lat,normalFont,colW)
- ];
-
- const topRight=[
-   ...wrap(ctx,address,addressFont,colW),
-   ...wrap(ctx,"LONGITUDE: "+lon,normalFont,colW)
- ];
-
- const secondLines=[
-   ...wrap(ctx,day+" | DATE: "+date+" | TIME: "+time+" | "+timezone,normalFont,contentWidth),
-   ...wrap(ctx,"ACCURACY: "+accuracy,normalFont,contentWidth)
- ];
-
- const thirdLines=[
-   ...(extra?wrap(ctx,extra,normalFont,contentWidth):[]),
-   ...(visitor?wrap(ctx,"Visited By: "+visitor,normalFont,contentWidth):[])
- ];
-
- function blockHeight(lines,firstAddress=false){
-   return lines.reduce((sum,line,i)=>{
-     return sum+(firstAddress&&i===0?addressSize+addressGap:fontSize+lineGap);
-   },0);
- }
-
- // The address is the first line in the right top block.
- const topLeftHeight=blockHeight(topLeft,false);
- const topRightHeight=blockHeight(topRight,true);
- const topHeight=Math.max(topLeftHeight,topRightHeight);
-
- const secondHeight=blockHeight(secondLines,false);
- const thirdHeight=blockHeight(thirdLines,false);
-
- const titleHeight=titleSize;
- const divider1=sectionGap;
- const divider2=thirdLines.length?sectionGap:0;
-
- const panelH=Math.max(
-   250,
-   topPad+titleHeight+sectionGap+
-   topHeight+divider1+secondHeight+
-   divider2+thirdHeight+bottomPad
+ const row1Height=Math.max(
+   topLeftRow1.length* (bodySize+lineGap),
+   topRightRow1.length*(addressSize+lineGap)
  );
+ const row2Height=Math.max(
+   topLeftRow2.length*(bodySize+lineGap),
+   topRightRow2.length*(bodySize+lineGap)
+ );
+ const topSectionHeight=row1Height+Math.max(12,bodySize*.35)+row2Height;
+
+ // SECOND SECTION.
+ const dateLine=""+day+" | DATE: "+date+" | TIME: "+time+" | "+zone;
+ let dateFontSize=bodySize;
+ dateFontSize=fitSingleLine(dateLine,dateFontSize,contentW,15);
+ const dateFont="bold "+dateFontSize+"px Georgia,serif";
+ const accuracyLine="ACCURACY: "+accuracy;
+ const accuracyLines=wrap(accuracyLine,bodyFont,contentW);
+ const secondSectionHeight=
+   dateFontSize+lineGap+
+   Math.max(accuracyLines.length*(bodySize+lineGap),bodySize+lineGap);
+
+ // THIRD SECTION.
+ const thirdLines=[];
+ if(extra)thirdLines.push(...wrap(extra,bodyFont,contentW));
+ if(visitor)thirdLines.push(...wrap("Visited By: "+visitor,bodyFont,contentW));
+ const thirdSectionHeight=
+   thirdLines.length*(bodySize+lineGap);
+
+ const maxPanelH=landscape?canvas.height*.52:canvas.height*.70;
+ let panelH=topPad+
+   titleSize+
+   titleGap+
+   topSectionHeight+
+   sectionGap+
+   secondSectionHeight+
+   (thirdLines.length?sectionGap:0)+
+   thirdSectionHeight+
+   bottomPad;
+
+ // Give the layout more room before shrinking the body font.
+ while(panelH>maxPanelH && bodySize>16){
+   bodySize--;
+   panelH=topPad+titleSize+titleGap+
+     topSectionHeight+sectionGap+secondSectionHeight+
+     (thirdLines.length?sectionGap:0)+thirdSectionHeight+bottomPad;
+ }
+ panelH=Math.max(panelH,260);
 
  const panelY=canvas.height-panelH-24;
 
- /* Draw camera image, respecting browser zoom/crop. */
- if(nativeZoom||zoomLevel<=1){
+ // Draw the camera frame.
+ if(nativeZoom || zoomLevel<=1){
    ctx.drawImage(video,border,border,video.videoWidth,video.videoHeight);
  }else{
    const z=zoomLevel;
@@ -547,12 +606,17 @@ function capturePhoto(){
    );
  }
 
- /* Deep-maroon photo border. */
+ // Deep-maroon border.
  ctx.lineWidth=border;
  ctx.strokeStyle="#A20404";
- ctx.strokeRect(border/2,border/2,video.videoWidth+border,video.videoHeight+border);
+ ctx.strokeRect(
+   border/2,
+   border/2,
+   video.videoWidth+border,
+   video.videoHeight+border
+ );
 
- /* Information box. */
+ // Information box.
  ctx.fillStyle="rgba(255,255,255,.50)";
  ctx.beginPath();
  ctx.roundRect(panelX,panelY,panelW,panelH,20);
@@ -562,81 +626,117 @@ function capturePhoto(){
  ctx.strokeStyle="#FBBC09";
  ctx.stroke();
 
- /* Title. */
- ctx.fillStyle="#000000";
+ // TITLE
+ ctx.fillStyle="#000";
  ctx.textAlign="center";
  ctx.font="bold italic "+titleSize+"px Georgia,serif";
- ctx.fillText(title,panelX+panelW/2,panelY+topPad+titleSize);
+ ctx.fillText(
+   titleText,
+   panelX+panelW/2,
+   panelY+topPad+titleSize
+ );
 
- let y=panelY+topPad+titleSize+sectionGap;
+ ctx.textAlign="left";
+
+ const contentTop=panelY+topPad+titleSize+titleGap;
  const leftX=panelX+pad;
  const rightX=leftX+colW+colGap;
 
- /* TOP SECTION: Plus Code + Address / Latitude + Longitude */
- ctx.textAlign="left";
+ // ---------- TOP SECTION ----------
+ let yLeft=contentTop;
+ let yRight=contentTop;
 
- ctx.font=normalFont;
- for(const line of topLeft){
-   ctx.fillText(line,leftX,y);
-   y+=fontSize+lineGap;
+ ctx.font=bodyFont;
+ for(const line of topLeftRow1){
+   ctx.fillText(line,leftX,yLeft);
+   yLeft+=bodySize+lineGap;
  }
 
- let ry=panelY+topPad+titleSize+sectionGap;
- for(let i=0;i<topRight.length;i++){
-   ctx.font=(i===0?addressFont:normalFont);
-   ctx.fillText(topRight[i],rightX,ry);
-   ry+=(i===0?addressSize+addressGap:fontSize+lineGap);
+ ctx.font=addressFont;
+ for(const line of topRightRow1){
+   ctx.fillText(line,rightX,yRight);
+   yRight+=addressSize+lineGap;
  }
 
- /* Vertical divider only through the top section. */
+ const row2Start=contentTop+row1Height+Math.max(12,bodySize*.35);
+
+ ctx.font=bodyFont;
+ yLeft=row2Start;
+ yRight=row2Start;
+
+ for(const line of topLeftRow2){
+   ctx.fillText(line,leftX,yLeft);
+   yLeft+=bodySize+lineGap;
+ }
+
+ for(const line of topRightRow2){
+   ctx.fillText(line,rightX,yRight);
+   yRight+=bodySize+lineGap;
+ }
+
+ // Divider between columns only inside TOP section.
  ctx.strokeStyle="#FBBC09";
  ctx.lineWidth=1.5;
- const topSectionBottom=y;
  ctx.beginPath();
- ctx.moveTo(panelX+panelW/2,panelY+topPad+titleSize+sectionGap-fontSize*.7);
- ctx.lineTo(panelX+panelW/2,topSectionBottom-fontSize*.25);
+ ctx.moveTo(
+   panelX+panelW/2,
+   contentTop-bodySize*.7
+ );
+ ctx.lineTo(
+   panelX+panelW/2,
+   contentTop+topSectionHeight-bodySize*.2
+ );
  ctx.stroke();
 
- /* Divider before second section. */
- const secondY=panelY+topPad+titleSize+sectionGap+topHeight+sectionGap*.45;
+ // Divider between TOP and SECOND sections.
+ let secondY=contentTop+topSectionHeight+sectionGap*.45;
  ctx.beginPath();
- ctx.moveTo(panelX+pad,secondY-fontSize*.75);
- ctx.lineTo(panelX+panelW-pad,secondY-fontSize*.75);
+ ctx.moveTo(panelX+pad,secondY-bodySize*.7);
+ ctx.lineTo(panelX+panelW-pad,secondY-bodySize*.7);
  ctx.stroke();
 
- /* SECOND SECTION: Day | Date | Time | GMT, then Accuracy. */
- y=secondY;
- ctx.font=normalFont;
- for(const line of secondLines){
-   ctx.fillText(line,leftX,y);
-   y+=fontSize+lineGap;
+ // ---------- SECOND SECTION ----------
+ ctx.font=dateFont;
+ ctx.fillText(dateLine,leftX,secondY);
+
+ let accuracyY=secondY+dateFontSize+lineGap;
+ ctx.font=bodyFont;
+ for(const line of accuracyLines){
+   ctx.fillText(line,leftX,accuracyY);
+   accuracyY+=bodySize+lineGap;
  }
 
- /* Divider before third section. */
- const thirdY=secondY+secondHeight+sectionGap*.45;
-
+ // Divider before THIRD section.
  if(thirdLines.length){
+   const thirdY=secondY+secondSectionHeight+sectionGap*.45;
+
    ctx.beginPath();
-   ctx.moveTo(panelX+pad,thirdY-fontSize*.75);
-   ctx.lineTo(panelX+panelW-pad,thirdY-fontSize*.75);
+   ctx.moveTo(panelX+pad,thirdY-bodySize*.7);
+   ctx.lineTo(panelX+panelW-pad,thirdY-bodySize*.7);
    ctx.stroke();
 
-   y=thirdY;
-   ctx.font=normalFont;
+   ctx.font=bodyFont;
+   let ty=thirdY;
 
    for(const line of thirdLines){
-     ctx.fillText(line,leftX,y);
-     y+=fontSize+lineGap;
+     ctx.fillText(line,leftX,ty);
+     ty+=bodySize+lineGap;
    }
  }
 
- /* Company logo: bottom-right, inside the information box. */
+ // Company logo is anchored to the bottom-right corner.
  if(logoImage){
    const maxLogoW=Math.min(panelW*.18,180);
-   const maxLogoH=Math.min(panelH*.16,100);
-   const scale=Math.min(maxLogoW/logoImage.width,maxLogoH/logoImage.height,1);
+   const maxLogoH=Math.min(panelH*.15,100);
+   const scale=Math.min(
+     maxLogoW/logoImage.width,
+     maxLogoH/logoImage.height,
+     1
+   );
+
    const lw=logoImage.width*scale;
    const lh=logoImage.height*scale;
+
    const lx=panelX+panelW-pad-lw;
    const ly=panelY+panelH-bottomPad-lh;
 
@@ -652,7 +752,6 @@ function capturePhoto(){
    }
 
    if(imageUrl)URL.revokeObjectURL(imageUrl);
-
    imageUrl=URL.createObjectURL(blob);
 
    preview.src=imageUrl;
@@ -674,13 +773,16 @@ function capturePhoto(){
 
    const a=document.createElement("a");
    a.href=imageUrl;
-   a.download="GPS-PHOTO-"+now.toISOString().slice(0,10)+"-"+now.toTimeString().slice(0,8).replace(/:/g,"-")+".jpg";
+   a.download=
+     "GPS-PHOTO-"+now.toISOString().slice(0,10)+"-"+
+     now.toTimeString().slice(0,8).replace(/:/g,"-")+".jpg";
+
    document.body.appendChild(a);
    a.click();
    a.remove();
+
  },"image/jpeg",.94);
 }
-
 ready.addEventListener("click",async()=>{
  if(!secureOK()){
    msg("Camera and GPS require HTTPS.");
