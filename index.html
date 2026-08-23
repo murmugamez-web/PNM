@@ -628,8 +628,8 @@ function updateLiveOverlay(){
   const lines = [
     gps.address || "Waiting for address...",
     gps.plusCode || "—",
-    "LATITUDE: " + (gps.lat !== null ? gps.lat.toFixed(6) + "°" : "—"),
-    "LONGITUDE: " + (gps.lon !== null ? gps.lon.toFixed(6) + "°" : "—"),
+    "LATITUDE: " + (gps.lat !== null ? gps.lat.toFixed(6) + "°" : "—") +
+      "   |   LONGITUDE: " + (gps.lon !== null ? gps.lon.toFixed(6) + "°" : "—"),
     now.day + " | DATE: " + now.date + " | TIME: " + now.time + " | " + now.gmt,
     "ACCURACY: " + (gps.accuracy !== null ? Math.round(gps.accuracy) + " m" : "—")
   ];
@@ -808,12 +808,21 @@ function renderFinalPhoto(){
     const latLonText =
       "LATITUDE: " + latitude + "   |   LONGITUDE: " + longitude;
 
-    const latLonLines = wrapCanvasText(
-      ctx,
-      latLonText,
-      normalFont,
-      contentW
-    );
+    /*
+      Latitude and Longitude MUST remain on one physical line.
+      Dynamically reduce only this line's font size until it fits.
+    */
+    let latLonFontSize = fontSize;
+    let latLonFont = normalFont;
+
+    while (latLonFontSize > 14) {
+      latLonFont = bodyFont(latLonFontSize);
+      ctx.font = latLonFont;
+      if (ctx.measureText(latLonText).width <= contentW) break;
+      latLonFontSize--;
+    }
+
+    const latLonLines = [latLonText];
 
     const dateTimeText =
       dateParts.day +
@@ -848,8 +857,8 @@ function renderFinalPhoto(){
       {
         name:"latLon",
         lines:latLonLines,
-        size:fontSize,
-        font:normalFont
+        size:latLonFontSize,
+        font:latLonFont
       },
       {
         name:"dateTime",
