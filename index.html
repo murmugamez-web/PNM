@@ -48,10 +48,6 @@ main{width:min(1100px,100%);margin:auto;padding:12px}
   border-radius:14px;color:#000;padding:10px 12px;
   font-family:Georgia,"Times New Roman",serif;pointer-events:none
 }
-.liveTitle{
-  text-align:center;font:bold italic clamp(20px,4vw,34px) Georgia,serif;
-  line-height:1.05;margin-bottom:8px
-}
 .liveLine{
   font-weight:700;font-size:clamp(14px,2.4vw,23px);
   line-height:1.18;margin:4px 0;overflow-wrap:anywhere
@@ -106,7 +102,6 @@ input[type=file]{
     <img id="preview" alt="Captured GPS photograph">
 
     <div id="liveBox">
-      <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING 🌐</div>
       <div id="liveLines"></div>
     </div>
   </div>
@@ -152,7 +147,6 @@ const video = $("video");
 const preview = $("preview");
 const placeholder = $("placeholder");
 const liveBox = $("liveBox");
-const liveTitle = $("liveTitle");
 const liveLines = $("liveLines");
 
 const readyBtn = $("ready");
@@ -181,6 +175,7 @@ let gps = {
   accuracy:null,
   address:"",
   countryCode:"",
+  countryName:"",
   plusCode:""
 };
 
@@ -511,6 +506,23 @@ async function reverseGeocode(lat,lon){
 
     gps.address = data.display_name || fallback || gps.address || "Address unavailable";
     gps.countryCode = String(a.country_code || gps.countryCode || "").toUpperCase();
+    gps.countryName = String(a.country || gps.countryName || "").trim();
+
+    if(gps.countryCode){
+      const flag = countryFlag(gps.countryCode);
+      const country = gps.countryName;
+      if(country){
+        const escapedCountry = country.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const countryRegex = new RegExp("\\b" + escapedCountry + "\\s*$", "i");
+        if(countryRegex.test(gps.address)){
+          gps.address = gps.address.replace(countryRegex, country + " " + flag);
+        }else if(!gps.address.includes(flag)){
+          gps.address = gps.address.replace(/[\\s,]+$/, "") + ", " + country + " " + flag;
+        }
+      }else if(!gps.address.includes(flag)){
+        gps.address = gps.address.replace(/[\\s,]+$/, "") + " " + flag;
+      }
+    }
 
     updateLiveOverlay();
 
@@ -613,10 +625,6 @@ function updateLiveOverlay(){
   }
 
   const now = getDateParts();
-  const flag = countryFlag(gps.countryCode);
-
-  liveTitle.textContent = "GPS PHOTO: GEO TAGGING " + flag;
-
   const lines = [
     gps.address || "Waiting for address...",
     gps.plusCode || "—",
@@ -752,36 +760,17 @@ function renderFinalPhoto(){
     Address is 24pt = 32 CSS/canvas pixels.
     We keep it at 32 unless the photograph itself is unusually small.
   */
-  const addressFontSize = Math.max(
-    26,
-    Math.round(Math.min(32,W * 0.020))
-  );
+  const addressFontSize = 48; // 36pt equivalent at 96 CSS pixels/inch
 
   let bodySize = Math.max(
     22,
     Math.min(34,Math.round(W * (landscape ? 0.022 : 0.026)))
   );
 
-  let titleSize = Math.max(
-    40,
-    Math.min(62,Math.round(W * (landscape ? 0.038 : 0.046)))
-  );
-
   const lineGap = Math.max(7,Math.round(bodySize * 0.20));
   const blockGap = Math.max(10,Math.round(bodySize * 0.28));
-
-  const titleBottomGap = Math.max(24,Math.round(bodySize * 0.70));
-  const topPadding = Math.max(28,Math.round(bodySize * 0.80));
+  const topPadding = Math.max(24,Math.round(bodySize * 0.65));
   const bottomPadding = Math.max(24,Math.round(bodySize * 0.65));
-
-  const title = "GPS PHOTO: GEO TAGGING " + countryFlag(gps.countryCode);
-
-  /* Ensure title itself fits. */
-  while(titleSize > 30){
-    ctx.font = "bold italic " + titleSize + "px Georgia,serif";
-    if(ctx.measureText(title).width <= contentW) break;
-    titleSize--;
-  }
 
   function bodyFont(size){
     return "bold " + size + "px Georgia,serif";
@@ -905,10 +894,7 @@ function renderFinalPhoto(){
   }
 
   function calculateHeight(blocks){
-    let height =
-      topPadding +
-      titleSize +
-      titleBottomGap;
+    let height = topPadding;
 
     for(const block of blocks){
       height +=
@@ -951,18 +937,6 @@ function renderFinalPhoto(){
 
   while(panelH > maxPanelH && bodySize > 17){
     bodySize--;
-    blocks = buildContent(bodySize);
-    panelH = calculateHeight(blocks);
-  }
-
-  /*
-    If a very small image still cannot fit at the minimum normal size,
-    allow the address to reduce slightly rather than clip anything.
-  */
-  let finalAddressSize = addressFontSize;
-
-  while(panelH > H * 0.90 && finalAddressSize > 24){
-    finalAddressSize--;
     blocks = buildContent(bodySize);
     panelH = calculateHeight(blocks);
   }
@@ -1036,34 +1010,14 @@ function renderFinalPhoto(){
   ctx.stroke();
 
   /* =======================================================
-     TITLE
-     ======================================================= */
-
-  ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "alphabetic";
-  ctx.font = "bold italic " + titleSize + "px Georgia,serif";
-
-  const titleY =
-    panelY +
-    topPadding +
-    titleSize;
-
-  ctx.fillText(
-    title,
-    panelX + panelW / 2,
-    titleY
-  );
-
-  /* =======================================================
      ALL INFORMATION - ONE CONTINUOUS SECTION
      ======================================================= */
 
+  ctx.fillStyle = "#000";
   ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
 
-  let y =
-    titleY +
-    titleBottomGap;
+  let y = panelY + topPadding;
 
   for(const block of blocks){
     ctx.font = block.font;
