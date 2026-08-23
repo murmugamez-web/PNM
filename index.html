@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#111827">
-<title>GPS PHOTO: GEO TAGGING</title>
+<title>GPS PHOTO: GEO TAGGING by PM</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f3f4f6;color:#111827;font-family:Arial,sans-serif}
@@ -43,7 +43,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius
 </style>
 </head>
 <body>
-<header><h1>GPS PHOTO: GEO TAGGING</h1></header>
+<header><h1>GPS PHOTO: GEO TAGGING by PM</h1></header>
 
 <main>
 <section class="card">
@@ -58,7 +58,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius
     <img id="preview" alt="Captured GPS photo">
 
     <div id="liveOverlay">
-      <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING 🌐</div>
+      <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING by PM 🌐</div>
 
       <div class="liveTop">
         <div class="liveCell" id="liveTopLeft"></div>
@@ -167,7 +167,7 @@ function plusCode(lat,lon){
 
 function updateLive(){
  const n=new Date();
- liveTitle.textContent="GPS PHOTO: GEO TAGGING "+flag(countryCode);
+ liveTitle.textContent="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
 
  liveTopLeft.innerHTML=
    '<div class="liveLine">'+esc(document.getElementById("address")?.textContent||window.lastAddress||"—")+'</div>'+
@@ -228,7 +228,7 @@ async function startCamera(){
    detectZoom();
    updateLive();
 
-   msg("Camera started. GPS updates every 1 minute.");
+   msg("Camera started. GPS updates every 40 seconds.");
    return true;
  }catch(e){
    console.error(e);
@@ -526,7 +526,7 @@ function capturePhoto(){
  }
 
  // Title + country flag.
- const titleText="GPS PHOTO: GEO TAGGING "+flag(countryCode);
+ const titleText="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
  titleSize=fitSingleLine(titleText,titleSize,contentW,30);
 
  // TOP SECTION.
@@ -774,7 +774,7 @@ function capturePhoto(){
    const a=document.createElement("a");
    a.href=imageUrl;
    a.download=
-     "GPS-PHOTO-"+now.toISOString().slice(0,10)+"-"+
+     "GPS-PHOTO-PM-"+now.toISOString().slice(0,10)+"-"+
      now.toTimeString().slice(0,8).replace(/:/g,"-")+".jpg";
 
    document.body.appendChild(a);
@@ -808,7 +808,7 @@ ready.addEventListener("click",async()=>{
  getGPS();
 
  if(gpsTimer)clearInterval(gpsTimer);
- gpsTimer=setInterval(getGPS,60000);
+ gpsTimer=setInterval(getGPS,40000);
 
  ready.textContent="READY ✓";
 });
@@ -838,7 +838,7 @@ download.addEventListener("click",()=>{
 
  const a=document.createElement("a");
  a.href=imageUrl;
- a.download="GPS-PHOTO-"+new Date().toISOString().slice(0,10)+".jpg";
+ a.download="GPS-PHOTO-PM-"+new Date().toISOString().slice(0,10)+".jpg";
  document.body.appendChild(a);
  a.click();
  a.remove();
