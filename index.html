@@ -777,31 +777,33 @@ function renderFinalPhoto(){
   }
 
   /*
-    IMPORTANT:
-    Address + Plus Code are a single logical block.
-    Address is drawn first and Plus Code follows it on the SAME LINE
-    whenever the complete line fits. If it does not fit, wrapping is
-    automatic, but the Plus Code still remains immediately after address
-    rather than overlapping another element.
+    Address and Plus Code are separate blocks.
+    Each receives its own calculated vertical position so they
+    can never overlap.
   */
   function buildContent(fontSize){
     const normalFont = bodyFont(fontSize);
     const addressFont = bodyFont(addressFontSize);
 
-    const addressAndCode =
-      address + "  |  " + plusCode;
-
-    const addressCodeLines =
+    const addressLines =
       wrapCanvasText(
         ctx,
-        addressAndCode,
+        address,
         addressFont,
+        contentW
+      );
+
+    const plusCodeLines =
+      wrapCanvasText(
+        ctx,
+        plusCode,
+        normalFont,
         contentW
       );
 
     /*
       Latitude and longitude are independent blocks so they can never
-      overlap the address block.
+      overlap the address or Plus Code.
     */
     const latLines = wrapCanvasText(
       ctx,
@@ -836,10 +838,16 @@ function renderFinalPhoto(){
 
     const blocks = [
       {
-        name:"addressCode",
-        lines:addressCodeLines,
+        name:"address",
+        lines:addressLines,
         size:addressFontSize,
         font:addressFont
+      },
+      {
+        name:"plusCode",
+        lines:plusCodeLines,
+        size:fontSize,
+        font:normalFont
       },
       {
         name:"latitude",
