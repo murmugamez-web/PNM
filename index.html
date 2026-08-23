@@ -27,6 +27,95 @@ main{max-width:1100px;margin:auto;padding:12px}
   display:none;width:100%;height:auto;max-height:78vh;
   object-fit:contain;background:#000;transform-origin:center center
 }
+#liveMapCard{
+  position:absolute;
+  right:4%;
+  bottom:calc(3% + 180px);
+  width:min(34%,220px);
+  min-width:130px;
+  height:105px;
+  border-radius:9px;
+  overflow:hidden;
+  background:#222;
+  color:#fff;
+  text-decoration:none;
+  box-shadow:0 3px 12px #0008;
+  z-index:5;
+  display:block;
+}
+.mapThumb{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(35deg,transparent 45%,#c9d2c0 46%,#c9d2c0 49%,transparent 50%),
+    linear-gradient(145deg,transparent 55%,#d8cbb5 56%,#d8cbb5 59%,transparent 60%),
+    #b9c9ad;
+  overflow:hidden;
+}
+.mapGrid{
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,transparent 0 24%,#e7e1d5 25% 27%,transparent 28% 59%,#e7e1d5 60% 62%,transparent 63%),
+    linear-gradient(0deg,transparent 0 28%,#e7e1d5 29% 31%,transparent 32% 68%,#e7e1d5 69% 71%,transparent 72%);
+  opacity:.8;
+}
+.mapRoad{
+  position:absolute;
+  background:#fff;
+  height:6px;
+  border-radius:10px;
+  box-shadow:0 0 0 1px #c9c1b2;
+}
+.road1{width:150%;left:-20%;top:48%;transform:rotate(-15deg)}
+.road2{width:120%;left:-10%;top:25%;transform:rotate(28deg)}
+.road3{width:100%;left:10%;top:72%;transform:rotate(7deg)}
+.mapPin{
+  position:absolute;
+  left:50%;
+  top:48%;
+  transform:translate(-50%,-50%);
+  width:24px;
+  height:24px;
+  border-radius:50% 50% 50% 0;
+  background:#e11d48;
+  color:#fff;
+  border:3px solid #fff;
+  box-shadow:0 2px 5px #0008;
+  font-size:0;
+  rotate:-45deg;
+}
+.mapPin::after{
+  content:"";
+  position:absolute;
+  width:7px;height:7px;
+  background:#fff;
+  border-radius:50%;
+  left:6px;top:6px;
+}
+.mapCaption{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  padding:5px 7px;
+  background:#111c;
+  font-size:12px;
+  font-weight:800;
+  text-align:center;
+  letter-spacing:.2px;
+}
+#mapBadge{
+  position:absolute;
+  right:4%;
+  bottom:calc(3% + 290px);
+  background:#333;
+  color:#fff;
+  padding:7px 10px;
+  border-radius:7px;
+  font-size:12px;
+  font-weight:800;
+  z-index:6;
+  box-shadow:0 2px 8px #0007;
+}
 #liveBox{
   display:none;position:absolute;left:3%;right:3%;bottom:3%;
   background:rgba(255,255,255,.50);border:2px solid var(--gold);
@@ -61,6 +150,20 @@ input[type=file]{background:#f8fafc}
 #status{margin-top:10px;background:#f1f5f9;padding:10px;border-radius:8px;font-size:14px}
 .warning{background:#fff7ed!important;color:#9a3412}
 .hidden{display:none!important}
+
+@media (max-width:600px){
+  #liveMapCard{
+    width:34vw;
+    min-width:115px;
+    height:82px;
+    bottom:calc(3% + 190px);
+  }
+  #mapBadge{
+    bottom:calc(3% + 278px);
+    font-size:10px;
+    padding:5px 7px;
+  }
+}
 </style>
 </head>
 
@@ -78,6 +181,24 @@ input[type=file]{background:#f8fafc}
     </div>
 
     <video id="video" autoplay muted playsinline></video>
+
+    <a id="liveMapCard"
+       class="hidden"
+       href="#"
+       target="_blank"
+       rel="noopener"
+       aria-label="Open current location in Google Maps">
+      <div class="mapThumb">
+        <div class="mapGrid"></div>
+        <div class="mapRoad road1"></div>
+        <div class="mapRoad road2"></div>
+        <div class="mapRoad road3"></div>
+        <div class="mapPin">●</div>
+      </div>
+      <div class="mapCaption">📍 Google Maps</div>
+    </a>
+
+    <div id="mapBadge" class="hidden">📍 GPS Map Camera</div>
 
     <div id="liveBox">
       <div id="liveLines"></div>
@@ -123,6 +244,8 @@ const video=document.getElementById("video");
 const placeholder=document.getElementById("placeholder");
 const liveBox=document.getElementById("liveBox");
 const liveLines=document.getElementById("liveLines");
+const liveMapCard=document.getElementById("liveMapCard");
+const mapBadge=document.getElementById("mapBadge");
 const ready=document.getElementById("ready");
 const switchCamera=document.getElementById("switchCamera");
 const zoomOut=document.getElementById("zoomOut");
@@ -656,6 +779,35 @@ function freshGPS(){
 }
 
 /* =========================================================
+   GOOGLE MAPS LINK / MINI MAP
+   ---------------------------------------------------------
+   No Google Maps API key is used.
+   The mini card is a lightweight visual map panel in the
+   live camera UI. Tapping it opens the exact current position
+   in Google Maps.
+
+   A real Google map cannot legally/technically be rasterized
+   into the final canvas without a Google Maps API-enabled
+   static-map service. Therefore the final JPG uses the GPS
+   data itself, while the live card opens Google Maps.
+   ========================================================= */
+function updateGoogleMapCard(){
+  if(gps.lat==null || gps.lon==null){
+    liveMapCard.classList.add("hidden");
+    mapBadge.classList.add("hidden");
+    return;
+  }
+
+  const url=
+    "https://www.google.com/maps/search/?api=1&query="+
+    encodeURIComponent(gps.lat+","+gps.lon);
+
+  liveMapCard.href=url;
+  liveMapCard.classList.remove("hidden");
+  mapBadge.classList.remove("hidden");
+}
+
+/* =========================================================
    LIVE OVERLAY
    ========================================================= */
 function escapeHTML(value){
@@ -708,6 +860,7 @@ function updateLiveOverlay(){
       escapeHTML(line)+
       "</div>"
     ).join("");
+  updateGoogleMapCard();
 }
 
 /* =========================================================
