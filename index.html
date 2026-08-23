@@ -87,6 +87,7 @@ input[type=file]{background:#f8fafc}
   <div class="controls">
     <button id="ready">READY</button>
     <button id="switchCamera" class="secondary hidden">SWITCH CAMERA</button>
+    <button id="rotatePhoto" class="secondary hidden">ROTATE PHOTO</button>
     <button id="zoomOut" class="zoom hidden">−</button>
     <span id="zoomText" class="zoomText hidden">Zoom 1.0×</span>
     <button id="zoomIn" class="zoom hidden">+</button>
@@ -129,6 +130,7 @@ const zoomOut=document.getElementById("zoomOut");
 const zoomIn=document.getElementById("zoomIn");
 const zoomText=document.getElementById("zoomText");
 const capture=document.getElementById("capture");
+const rotatePhoto=document.getElementById("rotatePhoto");
 const additional=document.getElementById("additional");
 const visited=document.getElementById("visited");
 const logo=document.getElementById("logo");
@@ -143,6 +145,7 @@ let stream=null;
 let gpsTimer=null;
 let facing="environment";
 let zoom=1;
+let outputRotation=0; // 0 = portrait/native, 90 = landscape, 180, 270
 let logoImage=null;
 let lastObjectUrl=null;
 
@@ -342,6 +345,7 @@ async function startCamera(){
     liveBox.style.display="block";
 
     switchCamera.classList.remove("hidden");
+    rotatePhoto.classList.remove("hidden");
     zoomOut.classList.remove("hidden");
     zoomIn.classList.remove("hidden");
     zoomText.classList.remove("hidden");
@@ -373,6 +377,32 @@ async function switchCameraMode(){
   facing=facing==="environment"?"user":"environment";
   await startCamera();
   getGPS();
+}
+
+/* =========================================================
+   OUTPUT ROTATION
+   This rotates the preview/final photo independently of the
+   phone's system auto-rotate setting.
+   ========================================================= */
+function rotateOutput(){
+  outputRotation=(outputRotation+90)%360;
+
+  /*
+    Keep the live camera upright visually. The actual final canvas
+    is rotated during capture, so the phone's auto-rotate setting
+    is not required.
+  */
+  video.style.transform="scale("+zoom+")";
+
+  const names={
+    0:"Portrait",
+    90:"Landscape",
+    180:"Portrait",
+    270:"Landscape"
+  };
+
+  rotatePhoto.textContent="ROTATE PHOTO ("+names[outputRotation]+")";
+  setStatus("Photo orientation: "+names[outputRotation]);
 }
 
 /* =========================================================
@@ -732,11 +762,22 @@ function renderFinalPhoto(){
   const border=
     Math.max(
       6,
-      Math.round(sourceW*.006)
+      Math.round(Math.max(sourceW,sourceH)*.006)
     );
 
-  const W=sourceW+border*2;
-  const H=sourceH+border*2;
+  /*
+    90° / 270° rotation swaps the final canvas width and height.
+    This is independent of the device auto-rotate setting.
+  */
+  const rotated=
+    outputRotation===90 ||
+    outputRotation===270;
+
+  const imageW=rotated?sourceH:sourceW;
+  const imageH=rotated?sourceW:sourceH;
+
+  const W=imageW+border*2;
+  const H=imageH+border*2;
 
   const canvas=document.createElement("canvas");
   canvas.width=W;
@@ -747,6 +788,23 @@ function renderFinalPhoto(){
   /* ---------------------------------------------------------
      CAMERA FRAME
      --------------------------------------------------------- */
+  ctx.save();
+
+  if(outputRotation===90){
+    ctx.translate(W,0);
+    ctx.rotate(Math.PI/2);
+  }else if(outputRotation===180){
+    ctx.translate(W,H);
+    ctx.rotate(Math.PI);
+  }else if(outputRotation===270){
+    ctx.translate(0,H);
+    ctx.rotate(-Math.PI/2);
+  }
+
+  /*
+    Draw the source frame in its native dimensions. The transform
+    above rotates it into the requested final orientation.
+  */
   if(zoom<=1.001){
 
     ctx.drawImage(
@@ -777,9 +835,11 @@ function renderFinalPhoto(){
     );
   }
 
+  ctx.restore();
+
   /* ---------------------------------------------------------
      PHOTO BORDER
-     --------------------------------------------------------- */
+     ---------------------------------------------------------
   ctx.lineWidth=border;
   ctx.strokeStyle="#A20404";
 
@@ -1364,6 +1424,8 @@ ready.addEventListener(
     }
 
     ready.disabled=true;
+    outputRotation=0;
+    rotatePhoto.textContent="ROTATE PHOTO";
 
     const cameraStarted=
       await startCamera();
@@ -1397,6 +1459,11 @@ ready.addEventListener(
 switchCamera.addEventListener(
   "click",
   switchCameraMode
+);
+
+rotatePhoto.addEventListener(
+  "click",
+  rotateOutput
 );
 
 zoomOut.addEventListener(
