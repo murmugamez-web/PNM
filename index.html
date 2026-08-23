@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
-<title>GPS PHOTO: GEO TAGGING by PM</title>
+<title>GPS PHOTO: GEO TAGGING</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f3f4f6;color:#111;font-family:Arial,sans-serif}
@@ -43,7 +43,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius
 </head>
 <body>
 
-<header><h1>GPS PHOTO: GEO TAGGING by PM</h1></header>
+<header><h1>GPS PHOTO: GEO TAGGING</h1></header>
 
 <main>
 <div class="card">
@@ -51,7 +51,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius
 <div class="camera">
   <div id="placeholder">
     <div class="camicon">📷</div>
-    <h2>GPS PHOTO: GEO TAGGING by PM</h2>
+    <h2>GPS PHOTO: GEO TAGGING</h2>
     <p>Press READY to start the camera and GPS.</p>
   </div>
 
@@ -59,7 +59,7 @@ input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius
   <img id="preview" alt="Captured GPS photo">
 
   <div id="liveBox">
-    <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING by PM 🌐</div>
+    <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING 🌐</div>
     <div id="liveLines"></div>
   </div>
 </div>
@@ -193,28 +193,38 @@ function makePlusCode(lat,lon){
 }
 
 function updateLive(){
-  liveTitle.textContent="GPS PHOTO: GEO TAGGING by PM "+countryFlag(gps.countryCode);
+  liveTitle.textContent="GPS PHOTO: GEO TAGGING "+countryFlag(gps.countryCode);
 
   const now=new Date();
+  const firstLine =
+    '<div class="liveLine"><b>'+esc(gps.plusCode)+'</b> &nbsp; | &nbsp; '+
+    esc(gps.address)+'</div>';
+
   const lines=[
-    gps.plusCode,
-    gps.address,
-    "LATITUDE: "+(gps.lat!==null?gps.lat.toFixed(6):"—"),
-    "LONGITUDE: "+(gps.lon!==null?gps.lon.toFixed(6):"—"),
-    now.toLocaleDateString(undefined,{weekday:"long"})+
-      " | DATE: "+now.toLocaleDateString("en-GB")+
-      " | TIME: "+now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true})+
-      " | "+gmtOffset(),
-    "ACCURACY: "+(gps.accuracy!==null?Math.round(gps.accuracy)+" m":"—")
+    firstLine,
+    '<div class="liveLine">LATITUDE: '+
+      esc(gps.lat!==null?gps.lat.toFixed(6):"—")+
+      ' &nbsp; | &nbsp; LONGITUDE: '+
+      esc(gps.lon!==null?gps.lon.toFixed(6):"—")+
+    '</div>',
+    '<div class="liveLine">'+
+      esc(now.toLocaleDateString(undefined,{weekday:"long"}))+
+      ' | DATE: '+esc(now.toLocaleDateString("en-GB"))+
+      ' | TIME: '+esc(now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true}))+
+      ' | '+esc(gmtOffset())+
+    '</div>',
+    '<div class="liveLine">ACCURACY: '+
+      esc(gps.accuracy!==null?Math.round(gps.accuracy)+" m":"—")+
+    '</div>'
   ];
 
   const extra=additional.value.trim();
   const visitor=visitedBy.value.trim();
 
-  if(extra)lines.push(extra);
-  if(visitor)lines.push("Visited By: "+visitor);
+  if(extra)lines.push('<div class="liveLine">'+esc(extra)+'</div>');
+  if(visitor)lines.push('<div class="liveLine">Visited By: '+esc(visitor)+'</div>');
 
-  liveLines.innerHTML=lines.map(x=>'<div class="liveLine">'+esc(x)+'</div>').join("");
+  liveLines.innerHTML=lines.join("");
   liveBox.style.display=stream?"block":"none";
 }
 
@@ -472,20 +482,19 @@ function wrapText(ctx,text,font,maxWidth){
 }
 
 function capturePhoto(){
-  if(!stream||!video.videoWidth){
+  if(!stream || !video.videoWidth){
     msg("Camera is not ready. Press READY first.");
     return;
   }
 
   const canvas=document.createElement("canvas");
   const border=Math.max(8,Math.round(video.videoWidth*.008));
-
   canvas.width=video.videoWidth+border*2;
   canvas.height=video.videoHeight+border*2;
 
   const ctx=canvas.getContext("2d");
-
   const now=new Date();
+
   const address=gps.address||"—";
   const plus=gps.plusCode||"—";
   const lat=gps.lat!==null?gps.lat.toFixed(6):"—";
@@ -495,37 +504,37 @@ function capturePhoto(){
   const day=now.toLocaleDateString(undefined,{weekday:"long"});
   const date=now.toLocaleDateString("en-GB");
   const time=now.toLocaleTimeString([],{
-    hour:"numeric",
-    minute:"2-digit",
-    hour12:true
+    hour:"numeric",minute:"2-digit",hour12:true
   });
   const zone=gmtOffset();
 
   const extra=additional.value.trim();
   const visitor=visitedBy.value.trim();
-
   const landscape=canvas.width>=canvas.height;
 
   const panelW=landscape?canvas.width*.90:canvas.width*.88;
   const panelX=(canvas.width-panelW)/2;
-
   const pad=Math.max(24,canvas.width*.025);
   const contentW=panelW-pad*2;
 
+  /* Title gets its own dedicated row. */
   let titleSize=landscape?
-    Math.max(42,Math.min(58,canvas.width*.036)):
-    Math.max(38,Math.min(52,canvas.width*.043));
+    Math.max(38,Math.min(54,canvas.width*.034)):
+    Math.max(34,Math.min(48,canvas.width*.040));
 
   let bodySize=landscape?
-    Math.max(23,Math.min(36,canvas.width*.023)):
-    Math.max(20,Math.min(32,canvas.width*.028));
+    Math.max(22,Math.min(34,canvas.width*.022)):
+    Math.max(19,Math.min(30,canvas.width*.026));
 
-  const addressSize=32; // 24pt
-  const lineGap=Math.max(8,bodySize*.22);
-  const titleGap=Math.max(22,bodySize*.65);
+  /* 24pt address = 32 CSS pixels at the standard 96dpi canvas scale. */
+  const addressSize=32;
+
+  const lineGap=Math.max(7,bodySize*.20);
   const blockGap=Math.max(9,bodySize*.22);
-  const topPad=Math.max(26,bodySize*.70);
-  const bottomPad=Math.max(30,bodySize*.75);
+  const titleGap=Math.max(24,bodySize*.70);
+  const topPad=Math.max(28,bodySize*.72);
+  const bottomPad=Math.max(28,bodySize*.72);
+  const rowGap=Math.max(18,bodySize*.45);
 
   function font(size){
     return "bold "+size+"px Georgia,serif";
@@ -535,139 +544,102 @@ function capturePhoto(){
     return wrapText(ctx,text,fontName,maxWidth);
   }
 
-  const title="GPS PHOTO: GEO TAGGING by PM "+countryFlag(gps.countryCode);
+  const title="GPS PHOTO: GEO TAGGING "+countryFlag(gps.countryCode);
 
-  while(titleSize>30){
+  while(titleSize>28){
     ctx.font="bold italic "+titleSize+"px Georgia,serif";
-    if(ctx.measureText(title).width<=contentW)break;
+    if(ctx.measureText(title).width<=contentW) break;
     titleSize--;
   }
 
   /*
-    ONE unified information flow.
-    There are no columns and no vertical divider.
+    IMPORTANT:
+    The Plus Code and Address are deliberately calculated as one row.
+    Each cell gets half the available width.
+    If either value wraps, its own row height grows automatically.
   */
+  const twoColGap=Math.max(18,contentW*.035);
+  const cellW=(contentW-twoColGap)/2;
+
   function buildBlocks(size){
     const bodyFont=font(size);
     const addressFont=font(addressSize);
 
+    const topRow={
+      plusLines:wrap(plus,bodyFont,cellW),
+      addressLines:wrap(address,addressFont,cellW),
+      plusFont:bodyFont,
+      addressFont:addressFont,
+      plusSize:size,
+      addressSize:addressSize
+    };
+
     const blocks=[
-      {
-        lines:wrap(plus,bodyFont,contentW),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
-      },
-      {
-        lines:wrap(address,addressFont,contentW),
-        size:addressSize,
-        gap:blockGap+4,
-        font:addressFont
-      },
-      {
-        lines:wrap("LATITUDE: "+lat,bodyFont,contentW),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
-      },
-      {
-        lines:wrap("LONGITUDE: "+lon,bodyFont,contentW),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
-      },
-      {
-        lines:wrap(
-          day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
-          bodyFont,
-          contentW
-        ),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
-      },
-      {
-        lines:wrap("ACCURACY: "+accuracy,bodyFont,contentW),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
-      }
+      {lines:wrap("LATITUDE: "+lat,bodyFont,contentW),size:size,font:bodyFont},
+      {lines:wrap("LONGITUDE: "+lon,bodyFont,contentW),size:size,font:bodyFont},
+      {lines:wrap(
+        day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
+        bodyFont,contentW
+      ),size:size,font:bodyFont},
+      {lines:wrap("ACCURACY: "+accuracy,bodyFont,contentW),size:size,font:bodyFont}
     ];
 
     if(extra){
       blocks.push({
         lines:wrap(extra,bodyFont,contentW),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
+        size:size,font:bodyFont
       });
     }
 
     if(visitor){
       blocks.push({
         lines:wrap("Visited By: "+visitor,bodyFont,contentW),
-        size:size,
-        gap:blockGap,
-        font:bodyFont
+        size:size,font:bodyFont
       });
     }
 
-    return blocks;
+    return {topRow,blocks};
   }
 
-  let blocks=buildBlocks(bodySize);
+  let layout=buildBlocks(bodySize);
 
-  function blocksHeight(list){
-    return list.reduce((sum,b)=>
-      sum+b.lines.length*(b.size+lineGap)+b.gap,0
-    );
+  function lineBlockHeight(b){
+    return b.lines.length*(b.size+lineGap)+blockGap;
   }
 
-  let contentHeight=blocksHeight(blocks);
+  function topRowHeight(row){
+    const maxLines=Math.max(row.plusLines.length,row.addressLines.length);
+    return maxLines*(Math.max(row.plusSize,row.addressSize)+lineGap)+rowGap;
+  }
 
-  const logoNeeded=!!logoImage;
-  const logoSpace=logoNeeded?
-    Math.max(90,Math.min(130,canvas.height*.12)):
-    0;
-
-  let panelH=
-    topPad+
-    titleSize+
-    titleGap+
-    contentHeight+
-    logoSpace+
-    bottomPad;
-
-  /*
-    If necessary, reduce normal text size.
-    Address is kept at 24pt unless the image is too small.
-  */
-  const maxPanelH=landscape?canvas.height*.58:canvas.height*.80;
-
-  while(panelH>maxPanelH&&bodySize>16){
-    bodySize--;
-    blocks=buildBlocks(bodySize);
-    contentHeight=blocksHeight(blocks);
-
-    panelH=
+  function totalHeight(l){
+    return (
       topPad+
       titleSize+
       titleGap+
-      contentHeight+
-      logoSpace+
-      bottomPad;
+      topRowHeight(l.topRow)+
+      l.blocks.reduce((sum,b)=>sum+lineBlockHeight(b),0)+
+      bottomPad+
+      (logoImage?Math.max(70,Math.min(110,canvas.height*.10)):0)
+    );
+  }
+
+  let panelH=totalHeight(layout);
+
+  const maxPanelH=landscape?canvas.height*.62:canvas.height*.82;
+
+  while(panelH>maxPanelH && bodySize>16){
+    bodySize--;
+    layout=buildBlocks(bodySize);
+    panelH=totalHeight(layout);
   }
 
   const panelY=canvas.height-panelH-24;
 
-  /* Draw the actual camera frame. */
-  if(nativeZoom||zoomLevel<=1){
+  /* Draw camera image, including visual zoom fallback. */
+  if(nativeZoom || zoomLevel<=1){
     ctx.drawImage(
-      video,
-      border,
-      border,
-      video.videoWidth,
-      video.videoHeight
+      video,border,border,video.videoWidth,video.videoHeight
     );
   }else{
     const z=zoomLevel;
@@ -678,26 +650,22 @@ function capturePhoto(){
       video,
       (video.videoWidth-sw)/2,
       (video.videoHeight-sh)/2,
-      sw,
-      sh,
-      border,
-      border,
-      video.videoWidth,
-      video.videoHeight
+      sw,sh,
+      border,border,
+      video.videoWidth,video.videoHeight
     );
   }
 
-  /* Deep-maroon photo border. */
+  /* Thin deep-maroon photo border. */
   ctx.lineWidth=border;
   ctx.strokeStyle="#A20404";
   ctx.strokeRect(
-    border/2,
-    border/2,
+    border/2,border/2,
     video.videoWidth+border,
     video.videoHeight+border
   );
 
-  /* Unified information box. */
+  /* Information box. */
   ctx.fillStyle="rgba(255,255,255,.50)";
   ctx.beginPath();
   ctx.roundRect(panelX,panelY,panelW,panelH,20);
@@ -707,7 +675,7 @@ function capturePhoto(){
   ctx.strokeStyle="#FBBC09";
   ctx.stroke();
 
-  /* Title. */
+  /* TITLE ROW — completely separated from GPS data. */
   ctx.fillStyle="#000";
   ctx.textAlign="center";
   ctx.font="bold italic "+titleSize+"px Georgia,serif";
@@ -717,29 +685,48 @@ function capturePhoto(){
     panelY+topPad+titleSize
   );
 
-  /* ALL INFORMATION - one continuous section. */
-  ctx.textAlign="left";
-
   let y=panelY+topPad+titleSize+titleGap;
 
-  for(const block of blocks){
+  /* PLUS CODE + ADDRESS — same horizontal row. */
+  ctx.textAlign="left";
+
+  const leftX=panelX+pad;
+  const rightX=leftX+cellW+twoColGap;
+
+  ctx.font=layout.topRow.plusFont;
+  let py=y;
+
+  for(const line of layout.topRow.plusLines){
+    ctx.fillText(line,leftX,py);
+    py+=layout.topRow.plusSize+lineGap;
+  }
+
+  ctx.font=layout.topRow.addressFont;
+  let ay=y;
+
+  for(const line of layout.topRow.addressLines){
+    ctx.fillText(line,rightX,ay);
+    ay+=layout.topRow.addressSize+lineGap;
+  }
+
+  y+=topRowHeight(layout.topRow);
+
+  /* Remaining GPS/time/additional information — one continuous section. */
+  for(const block of layout.blocks){
     ctx.font=block.font;
 
     for(const line of block.lines){
-      ctx.fillText(line,panelX+pad,y);
+      ctx.fillText(line,leftX,y);
       y+=block.size+lineGap;
     }
 
-    y+=block.gap;
+    y+=blockGap;
   }
 
-  /*
-    Company logo:
-    bottom-right inside the same information box.
-  */
+  /* Company logo remains bottom-right inside the same box. */
   if(logoImage){
     const maxLogoW=Math.min(panelW*.20,180);
-    const maxLogoH=Math.min(logoSpace*.80,100);
+    const maxLogoH=Math.min(logoImage?100:0,100);
 
     const scale=Math.min(
       maxLogoW/logoImage.width,
@@ -783,8 +770,7 @@ function capturePhoto(){
 
     const filename=
       "GPS-PHOTO-PM-"+now.toISOString().slice(0,10)+"-"+
-      now.toTimeString().slice(0,8).replace(/:/g,"-")+
-      ".jpg";
+      now.toTimeString().slice(0,8).replace(/:/g,"-")+".jpg";
 
     const a=document.createElement("a");
     a.href=imageUrl;
@@ -793,13 +779,9 @@ function capturePhoto(){
     a.click();
     a.remove();
 
-    /*
-      No RETAKE or DOWNLOAD buttons.
-      Automatically prepare for the next capture.
-    */
+    /* No RETAKE/DOWNLOAD buttons: automatically restart for next photo. */
     setTimeout(async()=>{
       const ok=await startCamera();
-
       if(ok){
         getGPS();
         msg("Ready for the next photo.");
@@ -808,7 +790,6 @@ function capturePhoto(){
 
   },"image/jpeg",.94);
 }
-
 /* READY */
 ready.addEventListener("click",async()=>{
   if(!secureContextOK()){
