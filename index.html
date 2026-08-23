@@ -805,16 +805,12 @@ function renderFinalPhoto(){
       Latitude and longitude are independent blocks so they can never
       overlap the address or Plus Code.
     */
-    const latLines = wrapCanvasText(
-      ctx,
-      "LATITUDE: " + latitude,
-      normalFont,
-      contentW
-    );
+    const latLonText =
+      "LATITUDE: " + latitude + "   |   LONGITUDE: " + longitude;
 
-    const lonLines = wrapCanvasText(
+    const latLonLines = wrapCanvasText(
       ctx,
-      "LONGITUDE: " + longitude,
+      latLonText,
       normalFont,
       contentW
     );
@@ -850,14 +846,8 @@ function renderFinalPhoto(){
         font:normalFont
       },
       {
-        name:"latitude",
-        lines:latLines,
-        size:fontSize,
-        font:normalFont
-      },
-      {
-        name:"longitude",
-        lines:lonLines,
+        name:"latLon",
+        lines:latLonLines,
         size:fontSize,
         font:normalFont
       },
