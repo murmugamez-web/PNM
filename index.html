@@ -109,6 +109,7 @@ input[type=file]{background:#f8fafc}
   <button id="zoomOut" class="zoom hidden" aria-label="Zoom out" title="Zoom out">➖</button>
   <span id="zoomText" class="zoomText hidden" aria-hidden="true">1.0×</span>
   <button id="zoomIn" class="zoom hidden" aria-label="Zoom in" title="Zoom in">➕</button>
+  <button id="flash" class="zoom hidden" aria-label="Flashlight: off" title="Flashlight: off">🔦</button>
   <button id="capture" class="hidden" aria-label="Capture photo" title="Capture photo">📸</button>
  </div>
 
@@ -137,7 +138,7 @@ const $=id=>document.getElementById(id);
 const video=$("video"),placeholder=$("placeholder"),liveBox=$("liveBox"),liveLines=$("liveLines");
 const liveMapCard=$("liveMapCard"),mapBadge=$("mapBadge");
 const ready=$("ready"),switchCamera=$("switchCamera");
-const zoomOut=$("zoomOut"),zoomIn=$("zoomIn"),zoomText=$("zoomText"),capture=$("capture");
+const zoomOut=$("zoomOut"),zoomIn=$("zoomIn"),zoomText=$("zoomText"),flash=$("flash"),capture=$("capture");
 const additional=$("additional"),visited=$("visited"),logo=$("logo"),logoPreview=$("logoPreview");
 const status=$("status"),httpsWarning=$("httpsWarning");
 
@@ -145,6 +146,8 @@ let stream=null;
 let gpsTimer=null;
 let facing="environment";
 let zoom=1;
+let flashMode="off"; // off, on, auto
+let flashSupported=false;
 let outputRotation=0;
 let deviceAngle=0;
 let motionPermissionRequested=false;
@@ -298,11 +301,17 @@ async function startCamera(){
   zoomOut.classList.remove("hidden");
   zoomIn.classList.remove("hidden");
   zoomText.classList.remove("hidden");
+  flash.classList.remove("hidden");
   capture.classList.remove("hidden");
 
   zoom=1;
   video.style.transform="scale(1)";
   updateZoomUI();
+
+  const cameraTrack=stream?.getVideoTracks?.()[0];
+  flashSupported=!!(cameraTrack?.getCapabilities?.().torch);
+  await applyFlashMode();
+
   updateLiveOverlay();
 
   wasCameraActive=true;
@@ -440,6 +449,84 @@ function updateZoomUI(){
  zoomIn.disabled=zoom>=8;
 }
 
+
+function updateFlashUI(){
+ if(!flash)return;
+
+ const labels={
+  off:"Flashlight: off",
+  on:"Flashlight: on",
+  auto:"Flashlight: auto"
+ };
+
+ const icons={
+  off:"🔦",
+  on:"💡",
+  auto:"🔆"
+ };
+
+ flash.textContent=icons[flashMode];
+ flash.title=labels[flashMode];
+ flash.setAttribute("aria-label",labels[flashMode]);
+
+ if(!flashSupported){
+  flash.disabled=true;
+  flash.title="Flashlight not supported by this camera/browser";
+  flash.setAttribute("aria-label",flash.title);
+ }else{
+  flash.disabled=false;
+ }
+}
+
+async function applyFlashMode(){
+ const track=stream?.getVideoTracks?.()[0];
+
+ if(!track){
+  flashSupported=false;
+  updateFlashUI();
+  return;
+ }
+
+ const capabilities=track.getCapabilities?.()||{};
+ flashSupported=!!capabilities.torch;
+
+ if(!flashSupported){
+  updateFlashUI();
+  return;
+ }
+
+ try{
+  /*
+   * Browser camera torch support uses the MediaStreamTrack torch
+   * constraint. "Auto" is represented by torch=false because
+   * browsers generally expose only on/off torch control; the
+   * camera itself remains responsible for its automatic exposure.
+   */
+  const torch=flashMode==="on";
+  await track.applyConstraints({
+   advanced:[{torch:torch}]
+  });
+ }catch(e){
+  setStatus("Flashlight mode is not supported by this camera/browser.");
+ }
+
+ updateFlashUI();
+}
+
+async function cycleFlash(){
+ if(!stream){
+  setStatus("Start the camera first.");
+  return;
+ }
+
+ flashMode =
+  flashMode==="off" ? "on" :
+  flashMode==="on" ? "auto" :
+  "off";
+
+ await applyFlashMode();
+}
+
 async function reverseGeocode(lat,lon){
  try{
   const url=
@@ -478,48 +565,76 @@ async function reverseGeocode(lat,lon){
    a.residential,
    a.pedestrian,
    a.footway,
-   a.path
+   a.path,
+   a.cycleway
   );
 
-  const localityValues=[
-   a.locality,a.neighbourhood,a.suburb,a.hamlet,
-   a.village,a.town,a.city
-  ].map(v=>String(v||"").trim()).filter(Boolean);
+  /*
+   * Explicit address order:
+   * Road/Main Road + locality + district + state + PIN + country.
+   *
+   * If a road is unavailable, use the most useful available
+   * locality/area as the first component rather than leaving
+   * an empty road field.
+   */
+  const locality=first(
+   a.locality,
+   a.neighbourhood,
+   a.suburb,
+   a.hamlet,
+   a.village,
+   a.town,
+   a.city
+  );
 
-  const parts=[];
-
-  if(road){
-   add(parts,road);
-  }else if(localityValues.length){
-   add(parts,localityValues.shift());
-  }
-
-  for(const item of localityValues){
-   add(parts,item);
-   if(parts.length>=2) break;
-  }
-
-  add(parts,first(
+  const district=first(
    a.city_district,
    a.district,
+   a.county,
    a.state_district
-  ));
+  );
 
-  add(parts,a.state);
-  add(parts,a.postcode);
-  add(parts,a.country);
-
-  gps.address=parts.join(", ") ||
-              data.display_name ||
-              "Address unavailable";
+  const state=first(a.state);
+  const pin=first(a.postcode);
+  const country=first(a.country);
 
   gps.countryCode=String(
    a.country_code||gps.countryCode||""
   ).toUpperCase();
 
-  gps.countryName=String(
-   a.country||gps.countryName||""
-  ).trim();
+  gps.countryName=country||gps.countryName||"";
+
+  const countryDisplay=country
+   ? ((countryFlag(gps.countryCode)||"")+" "+country).trim()
+   : "";
+
+  const parts=[];
+
+  if(road){
+   add(parts,road);
+  }else{
+   /*
+    * Proper fallback when no road is returned:
+    * use locality first, then district, so the address
+    * still starts with a meaningful geographic name.
+    */
+   add(parts,locality);
+  }
+
+  /*
+   * If road exists, locality follows it.
+   * If road was absent, locality may already be first.
+   */
+  if(road)add(parts,locality);
+
+  add(parts,district);
+  add(parts,state);
+  add(parts,pin);
+  add(parts,countryDisplay);
+
+  gps.address=parts.join(", ") ||
+              data.display_name ||
+              "Address unavailable";
 
   updateLiveOverlay();
 
@@ -1358,6 +1473,11 @@ zoomOut.addEventListener(
 zoomIn.addEventListener(
  "click",
  ()=>setZoom(zoom+.5)
+);
+
+flash.addEventListener(
+ "click",
+ cycleFlash
 );
 
 capture.addEventListener(
