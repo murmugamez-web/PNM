@@ -17,7 +17,7 @@ main{max-width:1100px;margin:auto;padding:12px}
 #placeholder .icon{font-size:55px}
 #video{display:none;width:100%;height:auto;max-height:78vh;object-fit:contain;background:#000}
 #liveBox{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.5);border:2px solid var(--gold);border-radius:12px;padding:9px;color:#000;font-family:Georgia,serif;pointer-events:none}
-.liveLine{font-weight:700;font-size:24px;line-height:1.15;margin:3px 0;overflow:hidden}
+.liveLine{font-weight:700;font-size:24px;line-height:1.15;margin:3px 0;overflow:hidden;text-align:center}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 button{border:0;border-radius:9px;padding:12px 15px;min-height:46px;font-weight:800;font-size:15px}
 button:disabled{opacity:.45}
@@ -366,7 +366,7 @@ function renderPhoto(){
   const contentW=panelW-pad*2;
 
   const addressSize=48; /* 36pt */
-  let bodySize=32; /* 24pt */ /* 24pt */
+  let bodySize=32; /* 24pt */ /* 24pt */ /* 24pt */
   const gap=Math.max(7,Math.round(bodySize*.18));
   const blockGap=Math.max(10,Math.round(bodySize*.28));
   const topPad=Math.max(22,Math.round(bodySize*.7));
@@ -396,7 +396,7 @@ function renderPhoto(){
 
   const t=timeInfo();
   const dateText=t.day+" | DATE: "+t.date+" | TIME: "+t.time+" | "+t.gmt;
-  const dateLines=wrap(ctx,dateText,normalFont(bodySize),contentW);
+  const dateLines=[dateText];
   const accLines=wrap(ctx,"ACCURACY: "+(gps.accuracy==null?"—":Math.round(gps.accuracy)+" m"),normalFont(bodySize),contentW);
   const extra=additional.value.trim();
   const visitor=visited.value.trim();
@@ -411,7 +411,7 @@ function renderPhoto(){
     sectionHeight(addressLines,addressSize)+
     sectionHeight(plusLines,bodySize)+
     (latLonSize+gap+blockGap)+
-    sectionHeight(dateLines,bodySize)+
+    (dateTimeSize+gap+blockGap)+
     sectionHeight(accLines,bodySize)+
     (extraLines.length?sectionHeight(extraLines,bodySize):0)+
     (visitorLines.length?sectionHeight(visitorLines,bodySize):0);
@@ -435,40 +435,85 @@ function renderPhoto(){
   ctx.strokeStyle="#FBBC09";
   ctx.stroke();
 
-  /* Unified content */
+  /* =========================================================
+     FINAL CANVAS INFORMATION RENDERING
+     All text is centered.
+     Latitude + Longitude = ONE physical line.
+     Day + Date + Time + GMT = ONE physical line.
+     ========================================================= */
   ctx.fillStyle="#000";
-  ctx.textAlign="left";
+  ctx.textAlign="center";
   ctx.textBaseline="alphabetic";
+  const centerX=panelX+panelW/2;
   let y=panelY+topPad;
 
-  function drawBlock(lines,font,size){
+  function drawCenteredWrapped(lines,font,size){
     ctx.font=font;
     for(const line of lines){
       y+=size;
-      ctx.fillText(line,panelX+pad,y);
+      ctx.fillText(line,centerX,y);
       y+=gap;
     }
     y+=blockGap-gap;
   }
 
-  /* Address: separate block */
-  drawBlock(addressLines,addressFont,addressSize);
+  /* Address: centered, 36pt, automatically wrapped. */
+  drawCenteredWrapped(addressLines,addressFont,addressSize);
 
-  /* Plus Code: separate block */
-  drawBlock(plusLines,normalFont(bodySize),bodySize);
+  /* Plus Code: centered, 24pt. */
+  drawCenteredWrapped(plusLines,normalFont(bodySize),bodySize);
 
-  /* LATITUDE + LONGITUDE: forced one physical line */
-  ctx.font=latLonFont;
+  /* Latitude + Longitude: NEVER wrap. One physical line. */
+  let latLonSize=bodySize;
+  const latText="LATITUDE: "+(gps.lat==null?"—":gps.lat.toFixed(6)+"°");
+  const lonText="LONGITUDE: "+(gps.lon==null?"—":gps.lon.toFixed(6)+"°");
+  const latLonText=latText+"   |   "+lonText;
+
+  while(latLonSize>10){
+    ctx.font=normalFont(latLonSize);
+    if(ctx.measureText(latLonText).width<=contentW) break;
+    latLonSize--;
+  }
+
+  ctx.font=normalFont(latLonSize);
   y+=latLonSize;
-  ctx.fillText(latLonText,panelX+pad,y);
+  ctx.fillText(latLonText,centerX,y);
   y+=gap+blockGap-gap;
 
-  drawBlock(dateLines,normalFont(bodySize),bodySize);
-  drawBlock(accLines,normalFont(bodySize),bodySize);
+  /* Day + Date + Time + GMT: NEVER wrap. One physical line. */
+  const dateTimeText=
+    t.day+" | DATE: "+t.date+" | TIME: "+t.time+" | "+t.gmt;
 
-  if(extraLines.length)drawBlock(extraLines,normalFont(bodySize),bodySize);
-  if(visitorLines.length)drawBlock(visitorLines,normalFont(bodySize),bodySize);
+  let dateTimeSize=bodySize;
+  while(dateTimeSize>10){
+    ctx.font=normalFont(dateTimeSize);
+    if(ctx.measureText(dateTimeText).width<=contentW) break;
+    dateTimeSize--;
+  }
 
+  ctx.font=normalFont(dateTimeSize);
+  y+=dateTimeSize;
+  ctx.fillText(dateTimeText,centerX,y);
+  y+=gap+blockGap-gap;
+
+  /* Accuracy: centered. */
+  const accuracyText=
+    "ACCURACY: "+(gps.accuracy==null?"—":Math.round(gps.accuracy)+" m");
+  drawCenteredWrapped([accuracyText],normalFont(bodySize),bodySize);
+
+  /* Additional Information: centered and wrapped. */
+  if(extraLines.length)
+    drawCenteredWrapped(extraLines,normalFont(bodySize),bodySize);
+
+  /* Visited By: centered and wrapped. */
+  if(visitorLines.length)
+    drawCenteredWrapped(visitorLines,normalFont(bodySize),bodySize);
+
+  /*
+    Company logo:
+    bottom-right INSIDE the information box.
+    It does not participate in text alignment.
+  */
   if(logoImage){
     const lx=panelX+panelW-pad-logoW;
     const ly=panelY+panelH-bottomPad-logoH;
