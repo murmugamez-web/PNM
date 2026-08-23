@@ -18,10 +18,10 @@ main{max-width:1100px;margin:16px auto;padding:0 12px}
 #preview{display:none;width:100%;height:auto;max-height:75vh;object-fit:contain;background:#A20404;border:3px solid #A20404}
 #placeholder{min-height:310px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#d1d5db;padding:30px}
 #placeholder .icon{font-size:60px}
-#liveOverlay{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:14px;color:#000;padding:10px;pointer-events:none;font-family:Georgia,serif;z-index:5}
+#liveOverlay{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:14px;color:#000;padding:14px 12px 12px;pointer-events:none;font-family:Georgia,serif;z-index:5}
 .live-title{text-align:center;font-weight:900;font-style:italic;font-size:clamp(17px,3vw,30px);line-height:1.05;margin-bottom:8px}
 .live-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.live-right{border-left:1.5px solid #FBBC09;padding-left:10px}
+.live-right{border-top:1.5px solid #FBBC09;padding-top:8px;margin-top:8px}
 .live-line{font-weight:800;font-size:clamp(12px,1.8vw,19px);line-height:1.2;overflow-wrap:anywhere;margin:2px 0}
 .live-bottom{border-top:1.5px solid #FBBC09;margin-top:8px;padding-top:6px}
 .buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px;align-items:center}
@@ -64,7 +64,7 @@ input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-si
 
     <div id="liveOverlay">
       <div id="liveTitle" class="live-title">GPS PHOTO: GEO TAGGING 🌐</div>
-      <div class="live-grid">
+      <div class="live-grid" style="display:block">
         <div id="liveLeft"></div>
         <div id="liveRight" class="live-right"></div>
       </div>
@@ -362,7 +362,7 @@ function capturePhoto(){
  const landscape=canvas.width>=canvas.height;
  const panelW=landscape?canvas.width*.92:canvas.width*.88;
  const panelX=(canvas.width-panelW)/2,pad=Math.max(22,canvas.width*.022);
- const gap=Math.max(24,panelW*.035),colW=(panelW-pad*2-gap)/2;
+ const gap=Math.max(18,panelW*.025),colW=panelW-pad*2;
 
  let titleSize=landscape?Math.max(42,Math.min(60,canvas.width*.037)):Math.max(38,Math.min(56,canvas.width*.043));
  let fontSize=landscape?Math.max(22,Math.min(38,canvas.width*.024)):Math.max(20,Math.min(34,canvas.width*.029));
@@ -396,10 +396,13 @@ function capturePhoto(){
 
  let content=build();
  const needed=()=>topPad+titleSize+titleGap+
-   Math.max(content.left.length,content.right.length)*(fontSize+lineGap)+
-   sectionGap+content.bottom.length*(fontSize+lineGap)+bottomPad;
+   content.left.length*(fontSize+lineGap)+
+   sectionGap+
+   content.right.length*(fontSize+lineGap)+
+   sectionGap+
+   content.bottom.length*(fontSize+lineGap)+bottomPad;
 
- const maxPanelH=landscape?canvas.height*.55:canvas.height*.72;
+ const maxPanelH=landscape?canvas.height*.60:canvas.height*.78;
  while(needed()>maxPanelH&&fontSize>16){fontSize--;content=build()}
 
  ctx.font="bold italic "+titleSize+"px Georgia,serif";
@@ -428,9 +431,11 @@ function capturePhoto(){
  ctx.fillText(d.title+" "+d.flag,panelX+panelW/2,panelY+topPad+titleSize);
 
  ctx.textAlign="left";
- const startY=panelY+topPad+titleSize+titleGap,leftX=panelX+pad,rightX=leftX+colW+gap;
-
+ const startY=panelY+topPad+titleSize+titleGap;
+ const leftX=panelX+pad;
  let y=startY;
+
+ // SECTION 1: Address + date/time information.
  for(const line of content.left){
    const isAddress = y===startY;
    ctx.font=isAddress?"bold "+addressFontSize+"px Georgia,serif":"bold "+fontSize+"px Georgia,serif";
@@ -438,19 +443,35 @@ function capturePhoto(){
    y+=isAddress?addressFontSize+lineGap:fontSize+lineGap;
  }
 
+ // SECTION 2: Plus Code + coordinates, directly BELOW section 1.
+ y += Math.max(8,fontSize*.25);
+ ctx.strokeStyle="#FBBC09";
+ ctx.lineWidth=1.5;
+ ctx.beginPath();
+ ctx.moveTo(panelX+pad,y-fontSize*.55);
+ ctx.lineTo(panelX+panelW-pad,y-fontSize*.55);
+ ctx.stroke();
+ y += sectionGap;
+
  ctx.font="bold "+fontSize+"px Georgia,serif";
- y=startY;
- for(const line of content.right){ctx.fillText(line,rightX,y);y+=fontSize+lineGap}
+ for(const line of content.right){
+   ctx.fillText(line,leftX,y);
+   y+=fontSize+lineGap;
+ }
 
- ctx.strokeStyle="#FBBC09";ctx.lineWidth=1.5;
- const bottomTop=panelY+panelH-content.bottom.length*(fontSize+lineGap)-sectionGap;
- ctx.beginPath();ctx.moveTo(panelX+panelW/2,startY-addressFontSize*.65);ctx.lineTo(panelX+panelW/2,bottomTop);ctx.stroke();
-
+ // SECTION 3: Additional Information / Visited By.
  if(content.bottom.length){
-   y=panelY+panelH-bottomPad-content.bottom.length*(fontSize+lineGap)+fontSize;
-   ctx.beginPath();ctx.moveTo(panelX+pad,y-fontSize-lineGap*.45);ctx.lineTo(panelX+panelW-pad,y-fontSize-lineGap*.45);ctx.stroke();
+   y += Math.max(8,fontSize*.25);
+   ctx.beginPath();
+   ctx.moveTo(panelX+pad,y-fontSize*.55);
+   ctx.lineTo(panelX+panelW-pad,y-fontSize*.55);
+   ctx.stroke();
+   y += sectionGap;
    ctx.font="bold "+fontSize+"px Georgia,serif";
-   for(const line of content.bottom){ctx.fillText(line,panelX+pad,y);y+=fontSize+lineGap}
+   for(const line of content.bottom){
+     ctx.fillText(line,leftX,y);
+     y+=fontSize+lineGap;
+   }
  }
 
  canvas.toBlob(blob=>{
