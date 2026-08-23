@@ -1,36 +1,45 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <title>GPS PHOTO: GEO TAGGING</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:#f3f4f6;color:#111827}
-header{background:#fff;border-bottom:1px solid #ddd;padding:15px 18px}
-header h1{margin:0;font-size:25px;font-weight:800}
-main{max-width:1100px;margin:16px auto;padding:0 12px}
-.card{background:#fff;border-radius:18px;padding:15px;margin-bottom:16px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
-.camera-shell{position:relative;background:#111827;border-radius:15px;overflow:hidden;min-height:310px}
-#video{display:none;width:100%;height:auto;max-height:75vh;object-fit:cover}
-#preview{display:none;width:100%;height:auto;max-height:75vh;object-fit:contain;background:#A20404;border:3px solid #A20404}
-#placeholder{min-height:310px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#d1d5db;padding:30px}
-#placeholder .icon{font-size:60px}
-#liveOverlay{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:15px;color:#000;padding:14px;pointer-events:none;font-family:Georgia,serif;z-index:5}
-.live-title{text-align:center;font-weight:900;font-style:italic;font-size:clamp(18px,3.5vw,34px);line-height:1.05;margin-bottom:12px}
-.live-plus{font-weight:900;font-size:clamp(15px,2.3vw,24px);line-height:1.15;overflow-wrap:anywhere;margin-bottom:5px}
-.live-address{font-weight:900;font-size:clamp(20px,3vw,32px);line-height:1.15;overflow-wrap:anywhere;margin-bottom:7px}
-.live-datetime{font-weight:900;font-size:clamp(13px,2vw,21px);line-height:1.2;overflow-wrap:anywhere}
-.live-gps{border-top:1.5px solid #FBBC09;margin-top:10px;padding-top:8px}
-.live-gps-line{font-weight:900;font-size:clamp(14px,2.1vw,22px);line-height:1.2;overflow-wrap:anywhere;margin:2px 0}
-.live-extra{border-top:1.5px solid #FBBC09;margin-top:9px;padding-top:7px;font-weight:900;font-size:clamp(14px,2vw,21px);line-height:1.2;overflow-wrap:anywhere}
-.live-visited{font-weight:900;font-size:clamp(14px,2vw,21px);line-height:1.2;overflow-wrap:anywhere;margin-top:5px}
-.buttons{(max-width:650px){
- header h1{font-size:22px}
- .location-grid{grid-template-columns:1fr}
-}
+body{margin:0;background:#f3f4f6;color:#111827;font-family:Arial,sans-serif}
+header{background:#fff;border-bottom:1px solid #ddd;padding:14px 18px}
+header h1{margin:0;font-size:24px}
+main{max-width:1100px;margin:15px auto;padding:0 12px}
+.card{background:#fff;border-radius:18px;padding:14px;margin-bottom:15px;box-shadow:0 3px 14px rgba(0,0,0,.08)}
+.camera{position:relative;background:#111827;border-radius:15px;overflow:hidden;min-height:300px}
+#video,#preview{display:none;width:100%;height:auto;max-height:78vh;object-fit:contain}
+#preview{background:#A20404;border:3px solid #A20404}
+#placeholder{min-height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#d1d5db;text-align:center;padding:30px}
+#placeholder .icon{font-size:58px}
+#liveOverlay{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:14px;color:#000;padding:12px;font-family:Georgia,serif;pointer-events:none;z-index:4}
+.liveTitle{text-align:center;font-size:clamp(18px,3vw,32px);font-weight:900;font-style:italic;margin-bottom:10px}
+.liveTop{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.liveCell{min-width:0}
+.liveCell.right{border-left:1.5px solid #FBBC09;padding-left:12px}
+.liveLine{font-weight:800;font-size:clamp(12px,1.8vw,19px);line-height:1.2;margin:3px 0;overflow-wrap:anywhere}
+.liveSecond{border-top:1.5px solid #FBBC09;margin-top:10px;padding-top:8px}
+.liveThird{border-top:1.5px solid #FBBC09;margin-top:8px;padding-top:7px}
+.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+button{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:800;cursor:pointer;min-height:44px}
+button:disabled{opacity:.45}
+#ready{background:#16a34a;color:white}
+#capture{background:#2563eb;color:white}
+.secondary{background:#e5e7eb;color:#111827}
+.zoom{background:#111827;color:white;font-size:20px;min-width:46px}
+.zoomLabel{font-weight:800}
+.hidden{display:none!important}
+label{display:block;font-weight:800;margin:13px 0 6px}
+input[type=text]{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px}
+input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius:9px;background:#f8fafc}
+.logoPreview{display:none;margin-top:8px;max-width:140px;max-height:70px;border:1px solid #ddd;border-radius:7px;object-fit:contain}
+.status{margin-top:11px;padding:10px;border-radius:9px;background:#f1f5f9;font-size:14px}
+.warning{background:#fff7ed;color:#9a3412}
 </style>
 </head>
 <body>
@@ -38,7 +47,7 @@ main{max-width:1100px;margin:16px auto;padding:0 12px}
 
 <main>
 <section class="card">
-  <div class="camera-shell">
+  <div class="camera">
     <div id="placeholder">
       <div class="icon">📷</div>
       <h2>Geo Tag Photo</h2>
@@ -49,26 +58,24 @@ main{max-width:1100px;margin:16px auto;padding:0 12px}
     <img id="preview" alt="Captured GPS photo">
 
     <div id="liveOverlay">
-      <div id="liveTitle" class="live-title">GPS PHOTO: GEO TAGGING 🌐</div>
-      <div id="livePlus" class="live-plus">—</div>
-      <div id="liveAddress" class="live-address">—</div>
-      <div id="liveDateTime" class="live-datetime">—</div>
-      <div class="live-gps">
-        <div id="liveLatitude" class="live-gps-line">LATITUDE: —</div>
-        <div id="liveLongitude" class="live-gps-line">LONGITUDE: —</div>
-        <div id="liveAccuracy" class="live-gps-line">ACCURACY: —</div>
+      <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING 🌐</div>
+
+      <div class="liveTop">
+        <div class="liveCell" id="liveTopLeft"></div>
+        <div class="liveCell right" id="liveTopRight"></div>
       </div>
-      <div id="liveExtra" class="live-extra hidden"></div>
-      <div id="liveVisited" class="live-visited hidden"></div>
+
+      <div class="liveSecond" id="liveSecond"></div>
+      <div class="liveThird" id="liveThird"></div>
     </div>
   </div>
 
   <div class="buttons">
     <button id="ready">READY</button>
     <button id="switchCamera" class="secondary hidden">🔄 SWITCH CAMERA</button>
-    <button id="zoomOut" class="zoom-btn hidden">−</button>
-    <span id="zoomLabel" class="zoom-label hidden">Zoom 1.0×</span>
-    <button id="zoomIn" class="zoom-btn hidden">+</button>
+    <button id="zoomOut" class="zoom hidden">−</button>
+    <span id="zoomLabel" class="zoomLabel hidden">Zoom 1.0×</span>
+    <button id="zoomIn" class="zoom hidden">+</button>
     <button id="capture" class="hidden">📸 CAPTURE PHOTO</button>
     <button id="retake" class="secondary hidden">🔄 RETAKE</button>
     <button id="download" class="secondary hidden">⬇ DOWNLOAD</button>
@@ -80,38 +87,34 @@ main{max-width:1100px;margin:16px auto;padding:0 12px}
   <label for="visitedBy">Visited By</label>
   <input id="visitedBy" type="text" placeholder="Enter name">
 
+  <label for="logoInput">Company Logo</label>
+  <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
+  <img id="logoPreview" class="logoPreview" alt="Company logo preview">
+
   <div id="status" class="status">Press READY.</div>
   <div id="security" class="status warning hidden"></div>
-</section>
-
-<section class="card">
-<h2>📍 Current GPS Information</h2>
-<div class="location-grid">
-  <div class="info"><small>FULL ADDRESS</small><strong id="address">—</strong></div>
-  <div class="info"><small>PLUS CODE</small><strong id="plusCode">—</strong></div>
-  <div class="info"><small>LATITUDE</small><strong id="latitude">—</strong></div>
-  <div class="info"><small>LONGITUDE</small><strong id="longitude">—</strong></div>
-  <div class="info"><small>GPS ACCURACY</small><strong id="accuracy">—</strong></div>
-</div>
 </section>
 </main>
 
 <script>
-(() => {
 "use strict";
 
 const $=id=>document.getElementById(id);
+
 const video=$("video"),preview=$("preview"),placeholder=$("placeholder");
 const ready=$("ready"),switchCamera=$("switchCamera"),capture=$("capture");
 const retake=$("retake"),download=$("download");
 const zoomIn=$("zoomIn"),zoomOut=$("zoomOut"),zoomLabel=$("zoomLabel");
-const liveOverlay=$("liveOverlay"),liveTitle=$("liveTitle"),livePlus=$("livePlus"),liveAddress=$("liveAddress"),liveDateTime=$("liveDateTime"),liveLatitude=$("liveLatitude"),liveLongitude=$("liveLongitude"),liveAccuracy=$("liveAccuracy"),liveExtra=$("liveExtra"),liveVisited=$("liveVisited");
-const status=$("status"),security=$("security"),additional=$("additional"),visitedBy=$("visitedBy");
+const liveOverlay=$("liveOverlay"),liveTitle=$("liveTitle");
+const liveTopLeft=$("liveTopLeft"),liveTopRight=$("liveTopRight");
+const liveSecond=$("liveSecond"),liveThird=$("liveThird");
+const additional=$("additional"),visitedBy=$("visitedBy");
+const logoInput=$("logoInput"),logoPreview=$("logoPreview");
+const status=$("status"),security=$("security");
 
-const E={address:$("address"),plusCode:$("plusCode"),latitude:$("latitude"),longitude:$("longitude"),accuracy:$("accuracy")};
-
-let stream=null, gpsTimer=null, imageUrl=null;
-let facingMode="environment", zoomLevel=1, nativeZoom=false, countryCode="";
+let stream=null,gpsTimer=null,imageUrl=null;
+let facingMode="environment",zoomLevel=1,nativeZoom=false,countryCode="";
+let logoImage=null;
 
 function msg(t){status.textContent=t}
 function secureOK(){return window.isSecureContext||location.hostname==="localhost"||location.hostname==="127.0.0.1"}
@@ -128,85 +131,125 @@ function flag(code){
 }
 
 function gmt(){
- const o=-new Date().getTimezoneOffset(),s=o>=0?"+":"-",a=Math.abs(o);
- return "GMT"+s+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
+ const offset=-new Date().getTimezoneOffset();
+ const sign=offset>=0?"+":"-";
+ const a=Math.abs(offset);
+ return "GMT"+sign+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
 }
 
 function esc(s){
- return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ return String(s).replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
 }
 
-/* Full Open Location Code / Plus Code generator. */
+/* Open Location Code / Plus Code compatible encoder. */
 function plusCode(lat,lon){
  lat=Number(lat);lon=Number(lon);
  if(!Number.isFinite(lat)||!Number.isFinite(lon))return "—";
  lat=Math.max(-90,Math.min(90,lat));
  lon=((lon+180)%360+360)%360-180;
  if(lat===90)lat-=1e-12;
- const A="23456789CFGHJMPQRVWX";
+
+ const alphabet="23456789CFGHJMPQRVWX";
  const places=[20,1,.05,.0025,.000125];
  let la=lat+90,lo=lon+180,code="";
+
  for(const p of places){
    const a=Math.max(0,Math.min(19,Math.floor(la/p)));
    const b=Math.max(0,Math.min(19,Math.floor(lo/p)));
-   code+=A[a]+A[b];
-   la-=a*p;lo-=b*p;
+   code+=alphabet[a]+alphabet[b];
+   la-=a*p;
+   lo-=b*p;
  }
  return code.slice(0,8)+"+"+code.slice(8);
 }
 
 function updateLive(){
- const now=new Date();
+ const n=new Date();
  liveTitle.textContent="GPS PHOTO: GEO TAGGING "+flag(countryCode);
- livePlus.textContent=E.plusCode.textContent||"—";
- liveAddress.textContent=E.address.textContent||"—";
- liveDateTime.textContent=now.toLocaleDateString(undefined,{weekday:"long"})+" | DATE: "+now.toLocaleDateString()+" | TIME: "+now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true})+" | "+gmt();
- liveLatitude.textContent="LATITUDE: "+(E.latitude.textContent||"—");
- liveLongitude.textContent="LONGITUDE: "+(E.longitude.textContent||"—");
- liveAccuracy.textContent="ACCURACY: "+(E.accuracy.textContent||"—");
- if(additional.value.trim()){liveExtra.textContent=additional.value.trim();liveExtra.classList.remove("hidden");}else{liveExtra.textContent="";liveExtra.classList.add("hidden");}
- if(visitedBy.value.trim()){liveVisited.textContent="Visited By: "+visitedBy.value.trim();liveVisited.classList.remove("hidden");}else{liveVisited.textContent="";liveVisited.classList.add("hidden");}
+
+ liveTopLeft.innerHTML=
+   '<div class="liveLine">'+esc(document.getElementById("address")?.textContent||window.lastAddress||"—")+'</div>'+
+   '<div class="liveLine">LATITUDE: '+esc(window.lastLat||"—")+'</div>';
+
+ liveTopRight.innerHTML=
+   '<div class="liveLine">'+esc(window.lastPlus||"—")+'</div>'+
+   '<div class="liveLine">LONGITUDE: '+esc(window.lastLon||"—")+'</div>';
+
+ liveSecond.innerHTML=
+   '<div class="liveLine">'+
+   esc(n.toLocaleDateString(undefined,{weekday:"long"}))+
+   ' | DATE: '+esc(n.toLocaleDateString())+
+   ' | TIME: '+esc(n.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true}))+
+   ' | '+gmt()+
+   '</div>'+
+   '<div class="liveLine">ACCURACY: '+esc(window.lastAccuracy||"—")+'</div>';
+
+ let b="";
+ if(additional.value.trim())b+='<div class="liveLine">'+esc(additional.value.trim())+'</div>';
+ if(visitedBy.value.trim())b+='<div class="liveLine">Visited By: '+esc(visitedBy.value.trim())+'</div>';
+ liveThird.innerHTML=b;
+
  liveOverlay.style.display=stream?"block":"none";
 }
+
 async function startCamera(){
  try{
    if(stream)stopCamera();
+
    stream=await navigator.mediaDevices.getUserMedia({
-     video:{facingMode:{ideal:facingMode},width:{ideal:1920},height:{ideal:1080}},
+     video:{
+       facingMode:{ideal:facingMode},
+       width:{ideal:1920},
+       height:{ideal:1080}
+     },
      audio:false
    });
+
    video.srcObject=stream;
+   await video.play();
+
    video.style.display="block";
    preview.style.display="none";
    placeholder.style.display="none";
+
    switchCamera.classList.remove("hidden");
    capture.classList.remove("hidden");
    zoomIn.classList.remove("hidden");
    zoomOut.classList.remove("hidden");
    zoomLabel.classList.remove("hidden");
+
    retake.classList.add("hidden");
    download.classList.add("hidden");
+
    zoomLevel=1;
+   video.style.transform="scale(1)";
    detectZoom();
    updateLive();
+
    msg("Camera started. GPS updates every 1 minute.");
    return true;
  }catch(e){
    console.error(e);
-   msg(e.name==="NotAllowedError"?"Camera permission denied. Allow camera access in browser settings.":"Camera error: "+(e.message||e.name));
+   msg(e.name==="NotAllowedError"
+      ?"Camera permission denied. Allow camera access in browser settings."
+      :"Camera error: "+(e.message||e.name));
    return false;
  }
 }
 
 function stopCamera(){
  if(stream)stream.getTracks().forEach(t=>t.stop());
- stream=null;video.srcObject=null;liveOverlay.style.display="none";
+ stream=null;
+ video.srcObject=null;
+ liveOverlay.style.display="none";
 }
 
 function detectZoom(){
  try{
-   const c=stream.getVideoTracks()[0].getCapabilities?.()||{};
-   nativeZoom=!!c.zoom;
+   const caps=stream?.getVideoTracks?.()[0]?.getCapabilities?.()||{};
+   nativeZoom=!!caps.zoom;
  }catch(e){nativeZoom=false}
  updateZoom();
 }
@@ -221,219 +264,482 @@ async function setZoom(z){
  z=Math.max(1,Math.min(3,z));
  const track=stream?.getVideoTracks?.()[0];
  if(!track)return;
+
  try{
-   const c=track.getCapabilities?.()||{};
-   if(c.zoom){
-     const min=Number(c.zoom.min??1),max=Number(c.zoom.max??3),step=Number(c.zoom.step??.1);
+   const caps=track.getCapabilities?.()||{};
+   if(caps.zoom){
+     const min=Number(caps.zoom.min??1);
+     const max=Number(caps.zoom.max??3);
+     const step=Number(caps.zoom.step??.1);
      z=Math.min(max,Math.max(min,Math.round(z/step)*step));
      await track.applyConstraints({advanced:[{zoom:z}]});
-     nativeZoom=true;video.style.transform="scale(1)";
+     nativeZoom=true;
+     video.style.transform="scale(1)";
    }else{
-     nativeZoom=false;video.style.transform="scale("+z+")";
+     nativeZoom=false;
+     video.style.transform="scale("+z+")";
    }
  }catch(e){
-   nativeZoom=false;video.style.transform="scale("+z+")";
+   nativeZoom=false;
+   video.style.transform="scale("+z+")";
  }
- zoomLevel=z;updateZoom();
+
+ zoomLevel=z;
+ updateZoom();
 }
 
 async function switchCam(){
  facingMode=facingMode==="environment"?"user":"environment";
  const ok=await startCamera();
- if(ok)msg(facingMode==="environment"?"Rear camera selected.":"Front camera selected.");
+ if(ok){
+   getGPS();
+   msg(facingMode==="environment"?"Rear camera selected.":"Front camera selected.");
+ }
 }
 
-function getGPS(){
- if(!navigator.geolocation){msg("GPS is not supported by this browser.");return}
- navigator.geolocation.getCurrentPosition(async p=>{
-   const lat=p.coords.latitude,lon=p.coords.longitude;
-   E.latitude.textContent=lat.toFixed(6);
-   E.longitude.textContent=lon.toFixed(6);
-   E.accuracy.textContent=Math.round(p.coords.accuracy)+" m";
-   E.plusCode.textContent=plusCode(lat,lon);
-   updateLive();
-   await reverseGeocode(lat,lon);
-   updateLive();
-   msg("GPS updated: "+new Date().toLocaleTimeString());
- },e=>{
-   if(e.code===1)msg("Location permission denied. Allow Location access in browser settings.");
-   else if(e.code===2)msg("Location unavailable. Trying again...");
-   else if(e.code===3)msg("GPS timed out. Trying again...");
-   else msg("Unable to get GPS location.");
-   updateLive();
- },{
-   enableHighAccuracy:true,timeout:20000,maximumAge:0
- });
-}
+let lastAddress="—";
+let lastPlus="—";
+let lastLat="—";
+let lastLon="—";
+let lastAccuracy="—";
+
+window.lastAddress=lastAddress;
+window.lastPlus=lastPlus;
+window.lastLat=lastLat;
+window.lastLon=lastLon;
+window.lastAccuracy=lastAccuracy;
 
 async function reverseGeocode(lat,lon){
  try{
-   const url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon)+"&zoom=18&addressdetails=1";
-   const r=await fetch(url,{headers:{Accept:"application/json"}});
-   if(!r.ok)throw new Error("HTTP "+r.status);
-   const d=await r.json(),a=d.address||{};
-   E.address.textContent=d.display_name||[a.road,a.suburb,a.city,a.state,a.postcode,a.country].filter(Boolean).join(", ")||"—";
+   const url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+
+     encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon)+
+     "&zoom=18&addressdetails=1";
+
+   const response=await fetch(url,{headers:{Accept:"application/json"}});
+   if(!response.ok)throw new Error("HTTP "+response.status);
+
+   const data=await response.json();
+   const a=data.address||{};
+
+   lastAddress=data.display_name||
+     [a.road,a.suburb,a.city,a.state,a.postcode,a.country]
+     .filter(Boolean).join(", ")||"—";
+
    countryCode=(a.country_code||"").toUpperCase();
-   E.plusCode.textContent=plusCode(lat,lon);
+   window.lastAddress=lastAddress;
  }catch(e){
    console.warn(e);
-   msg("GPS works; address lookup is temporarily unavailable.");
+   msg("GPS works, but address lookup is temporarily unavailable.");
  }
+
  updateLive();
 }
 
-async function readyPressed(){
- if(!secureOK()){msg("Camera and GPS require HTTPS.");return}
- if(!navigator.mediaDevices?.getUserMedia){msg("This browser does not provide camera access.");return}
- ready.disabled=true;ready.textContent="STARTING...";
- const ok=await startCamera();
- if(!ok){ready.disabled=false;ready.textContent="READY";return}
- getGPS();
- if(gpsTimer)clearInterval(gpsTimer);
- gpsTimer=setInterval(getGPS,60000);
- ready.textContent="READY ✓";
+function getGPS(){
+ if(!navigator.geolocation){
+   msg("GPS is not supported by this browser.");
+   return;
+ }
+
+ navigator.geolocation.getCurrentPosition(async position=>{
+   const c=position.coords;
+   lastLat=c.latitude.toFixed(6);
+   lastLon=c.longitude.toFixed(6);
+   lastAccuracy=Math.round(c.accuracy)+" m";
+   lastPlus=plusCode(c.latitude,c.longitude);
+
+   window.lastLat=lastLat;
+   window.lastLon=lastLon;
+   window.lastAccuracy=lastAccuracy;
+   window.lastPlus=lastPlus;
+
+   updateLive();
+   await reverseGeocode(c.latitude,c.longitude);
+   msg("GPS updated: "+new Date().toLocaleTimeString());
+ },error=>{
+   if(error.code===1)msg("Location permission denied. Allow Location access in browser settings.");
+   else if(error.code===2)msg("Location unavailable. Trying again...");
+   else if(error.code===3)msg("GPS timed out. Trying again...");
+   else msg("Unable to get GPS location.");
+   updateLive();
+ },{
+   enableHighAccuracy:true,
+   timeout:20000,
+   maximumAge:0
+ });
 }
 
-function wrap(ctx,text,font,max){
+function loadLogo(file){
+ if(!file){logoImage=null;logoPreview.style.display="none";return}
+ const reader=new FileReader();
+
+ reader.onload=e=>{
+   const img=new Image();
+   img.onload=()=>{
+     logoImage=img;
+     logoPreview.src=e.target.result;
+     logoPreview.style.display="block";
+     msg("Company logo loaded.");
+     updateLive();
+   };
+   img.src=e.target.result;
+ };
+ reader.readAsDataURL(file);
+}
+
+function wrap(ctx,text,font,maxWidth){
  ctx.font=font;
- const words=String(text).split(/\s+/),lines=[];let line="";
- for(const w of words){
-   const t=line?line+" "+w:w;
-   if(ctx.measureText(t).width<=max)line=t;
-   else{
+ const words=String(text).split(/\s+/);
+ const lines=[];
+ let line="";
+
+ for(const word of words){
+   const test=line?line+" "+word:word;
+
+   if(ctx.measureText(test).width<=maxWidth){
+     line=test;
+   }else{
      if(line)lines.push(line);
-     if(ctx.measureText(w).width>max){
+
+     if(ctx.measureText(word).width>maxWidth){
        let part="";
-       for(const ch of w){
-         const q=part+ch;
-         if(ctx.measureText(q).width<=max)part=q;
-         else{if(part)lines.push(part);part=ch}
+       for(const ch of word){
+         const testPart=part+ch;
+         if(ctx.measureText(testPart).width<=maxWidth)part=testPart;
+         else{
+           if(part)lines.push(part);
+           part=ch;
+         }
        }
        line=part;
-     }else line=w;
+     }else{
+       line=word;
+     }
    }
  }
+
  if(line)lines.push(line);
  return lines;
 }
 
 function capturePhoto(){
- if(!stream||!video.videoWidth||!video.videoHeight){msg("Camera is not ready. Press READY first.");return;}
- const w=video.videoWidth,h=video.videoHeight;
- const border=Math.max(10,Math.round(w*.008));
- const canvas=document.createElement("canvas");
- canvas.width=w+border*2; canvas.height=h+border*2;
- const ctx=canvas.getContext("2d");
- const now=new Date();
- const d={
-  title:"GPS PHOTO: GEO TAGGING", flag:flag(countryCode),
-  plus:E.plusCode.textContent||"—", address:E.address.textContent||"—",
-  day:now.toLocaleDateString(undefined,{weekday:"long"}), date:now.toLocaleDateString(),
-  time:now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true}), tz:gmt(),
-  lat:E.latitude.textContent||"—", lon:E.longitude.textContent||"—", acc:E.accuracy.textContent||"—",
-  extra:additional.value.trim(), visitor:visitedBy.value.trim()
- };
- const landscape=w>=h;
- const panelW=landscape?w*.90:w*.88;
- const panelX=(canvas.width-panelW)/2;
- const pad=Math.max(24,canvas.width*.022);
- const contentW=panelW-pad*2;
- const addressSize=32; // 24pt
- let normalSize=landscape?Math.max(22,Math.min(36,w*.023)):Math.max(21,Math.min(34,w*.029));
- let titleSize=landscape?Math.max(40,Math.min(58,w*.036)):Math.max(38,Math.min(54,w*.043));
- let dateSize=Math.max(15,Math.min(normalSize,landscape?w*.018:w*.022));
- const gap=Math.max(8,normalSize*.18);
- const sectionGap=Math.max(12,normalSize*.32);
- const topPad=Math.max(22,normalSize*.55);
- const titleGap=Math.max(20,normalSize*.55);
- const bottomPad=Math.max(20,normalSize*.55);
- const wrap=(text,font,max)=>{ctx.font=font;const words=String(text).split(/\s+/),lines=[];let line="";for(const word of words){const t=line?line+" "+word:word;if(ctx.measureText(t).width<=max)line=t;else{if(line)lines.push(line);if(ctx.measureText(word).width>max){let part="";for(const ch of word){const q=part+ch;if(ctx.measureText(q).width<=max)part=q;else{if(part)lines.push(part);part=ch}}line=part}else line=word;}}if(line)lines.push(line);return lines;};
- const dateText=d.day+" | DATE: "+d.date+" | TIME: "+d.time+" | "+d.tz;
- // Force the day/date/time/GMT row to one line by sizing that row independently.
- while(dateSize>12){ctx.font="bold "+dateSize+"px Georgia,serif";if(ctx.measureText(dateText).width<=contentW)break;dateSize--;}
- function build(){
-  const normal="bold "+normalSize+"px Georgia,serif";
-  const address="bold "+addressSize+"px Georgia,serif";
-  const dateFont="bold "+dateSize+"px Georgia,serif";
-  return {
-   plus:wrap(d.plus,normal,contentW),
-   address:wrap(d.address,address,contentW),
-   date:[dateText],
-   gps:[...wrap("LATITUDE: "+d.lat,normal,contentW),...wrap("LONGITUDE: "+d.lon,normal,contentW),...wrap("ACCURACY: "+d.acc,normal,contentW)],
-   extra:d.extra?wrap(d.extra,normal,contentW):[],
-   visited:d.visitor?wrap("Visited By: "+d.visitor,normal,contentW):[]
-  };
+ if(!stream||!video.videoWidth){
+   msg("Camera is not ready. Press READY first.");
+   return;
  }
- let layout=build();
- const heightNeeded=()=>{
-  let n=topPad+titleSize+titleGap;
-  n+=layout.plus.length*(normalSize+gap)+sectionGap;
-  n+=layout.address.length*(addressSize+gap)+sectionGap;
-  n+=dateSize+gap+sectionGap;
-  n+=layout.gps.length*(normalSize+gap);
-  if(layout.extra.length||layout.visited.length){n+=sectionGap+2;n+=layout.extra.length*(normalSize+gap);n+=layout.visited.length*(normalSize+gap);}
-  return n+bottomPad;
- };
- const maxH=landscape?h*.62:h*.78;
- while(heightNeeded()>maxH&&normalSize>16){normalSize--;dateSize=Math.min(dateSize,normalSize);while(dateSize>12){ctx.font="bold "+dateSize+"px Georgia,serif";if(ctx.measureText(dateText).width<=contentW)break;dateSize--;}layout=build();}
+
+ const canvas=document.createElement("canvas");
+ const border=Math.max(10,Math.round(video.videoWidth*.008));
+
+ canvas.width=video.videoWidth+border*2;
+ canvas.height=video.videoHeight+border*2;
+
+ const ctx=canvas.getContext("2d");
+
+ const now=new Date();
+ const address=window.lastAddress||"—";
+ const plus=window.lastPlus||"—";
+ const lat=window.lastLat||"—";
+ const lon=window.lastLon||"—";
+ const accuracy=window.lastAccuracy||"—";
+
+ const day=now.toLocaleDateString(undefined,{weekday:"long"});
+ const date=now.toLocaleDateString();
+ const time=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true});
+ const timezone=gmt();
+
+ const extra=additional.value.trim();
+ const visitor=visitedBy.value.trim();
+
+ const landscape=canvas.width>=canvas.height;
+
+ const panelW=landscape?canvas.width*.90:canvas.width*.88;
+ const panelX=(canvas.width-panelW)/2;
+ const pad=Math.max(24,canvas.width*.025);
+
+ const fontSize=landscape?Math.max(25,canvas.width*.023):Math.max(22,canvas.width*.030);
+ const addressSize=32; // 24pt
+ const titleSize=landscape?Math.max(42,canvas.width*.035):Math.max(38,canvas.width*.045);
+
+ const lineGap=Math.max(9,fontSize*.22);
+ const addressGap=Math.max(10,addressSize*.20);
+ const sectionGap=Math.max(22,fontSize*.55);
+ const topPad=Math.max(25,fontSize*.65);
+ const bottomPad=Math.max(24,fontSize*.60);
+
+ const contentWidth=panelW-pad*2;
+ const colGap=Math.max(22,contentWidth*.035);
+ const colW=(contentWidth-colGap)/2;
+
+ const titleFont="bold italic "+titleSize+"px Georgia,serif";
+ const normalFont="bold "+fontSize+"px Georgia,serif";
+ const addressFont="bold "+addressSize+"px Georgia,serif";
+
+ let title="GPS PHOTO: GEO TAGGING "+flag(countryCode);
+
+ ctx.font=titleFont;
+ while(titleSize>30&&ctx.measureText(title).width>contentWidth){
+   titleSize--;
+   ctx.font="bold italic "+titleSize+"px Georgia,serif";
+ }
+
+ const topLeft=[
+   ...wrap(ctx,plus,normalFont,colW),
+   ...wrap(ctx,"LATITUDE: "+lat,normalFont,colW)
+ ];
+
+ const topRight=[
+   ...wrap(ctx,address,addressFont,colW),
+   ...wrap(ctx,"LONGITUDE: "+lon,normalFont,colW)
+ ];
+
+ const secondLines=[
+   ...wrap(ctx,day+" | DATE: "+date+" | TIME: "+time+" | "+timezone,normalFont,contentWidth),
+   ...wrap(ctx,"ACCURACY: "+accuracy,normalFont,contentWidth)
+ ];
+
+ const thirdLines=[
+   ...(extra?wrap(ctx,extra,normalFont,contentWidth):[]),
+   ...(visitor?wrap(ctx,"Visited By: "+visitor,normalFont,contentWidth):[])
+ ];
+
+ function blockHeight(lines,firstAddress=false){
+   return lines.reduce((sum,line,i)=>{
+     return sum+(firstAddress&&i===0?addressSize+addressGap:fontSize+lineGap);
+   },0);
+ }
+
+ // The address is the first line in the right top block.
+ const topLeftHeight=blockHeight(topLeft,false);
+ const topRightHeight=blockHeight(topRight,true);
+ const topHeight=Math.max(topLeftHeight,topRightHeight);
+
+ const secondHeight=blockHeight(secondLines,false);
+ const thirdHeight=blockHeight(thirdLines,false);
+
+ const titleHeight=titleSize;
+ const divider1=sectionGap;
+ const divider2=thirdLines.length?sectionGap:0;
+
+ const panelH=Math.max(
+   250,
+   topPad+titleHeight+sectionGap+
+   topHeight+divider1+secondHeight+
+   divider2+thirdHeight+bottomPad
+ );
+
+ const panelY=canvas.height-panelH-24;
+
+ /* Draw camera image, respecting browser zoom/crop. */
+ if(nativeZoom||zoomLevel<=1){
+   ctx.drawImage(video,border,border,video.videoWidth,video.videoHeight);
+ }else{
+   const z=zoomLevel;
+   const sw=video.videoWidth/z;
+   const sh=video.videoHeight/z;
+   ctx.drawImage(
+     video,
+     (video.videoWidth-sw)/2,
+     (video.videoHeight-sh)/2,
+     sw,sh,
+     border,border,
+     video.videoWidth,video.videoHeight
+   );
+ }
+
+ /* Deep-maroon photo border. */
+ ctx.lineWidth=border;
+ ctx.strokeStyle="#A20404";
+ ctx.strokeRect(border/2,border/2,video.videoWidth+border,video.videoHeight+border);
+
+ /* Information box. */
+ ctx.fillStyle="rgba(255,255,255,.50)";
+ ctx.beginPath();
+ ctx.roundRect(panelX,panelY,panelW,panelH,20);
+ ctx.fill();
+
+ ctx.lineWidth=3;
+ ctx.strokeStyle="#FBBC09";
+ ctx.stroke();
+
+ /* Title. */
+ ctx.fillStyle="#000000";
+ ctx.textAlign="center";
  ctx.font="bold italic "+titleSize+"px Georgia,serif";
- while(titleSize>28&&ctx.measureText(d.title+" "+d.flag).width>contentW){titleSize--;ctx.font="bold italic "+titleSize+"px Georgia,serif";}
- const panelH=Math.max(heightNeeded(),landscape?310:370);
- const panelY=canvas.height-panelH-Math.max(18,border*2);
- // Draw actual camera frame, including software zoom when native zoom is unavailable.
- if(nativeZoom||zoomLevel<=1){ctx.drawImage(video,border,border,w,h);}else{const z=zoomLevel,sw=w/z,sh=h/z;ctx.drawImage(video,(w-sw)/2,(h-sh)/2,sw,sh,border,border,w,h);}
- // Deep-maroon photo border.
- ctx.lineWidth=border;ctx.strokeStyle="#A20404";ctx.strokeRect(border/2,border/2,w+border,h+border);
- // Transparent white information box.
- ctx.fillStyle="rgba(255,255,255,.50)";ctx.beginPath();ctx.roundRect(panelX,panelY,panelW,panelH,20);ctx.fill();ctx.lineWidth=3;ctx.strokeStyle="#FBBC09";ctx.stroke();
- // Title.
- ctx.fillStyle="#000";ctx.textAlign="center";ctx.font="bold italic "+titleSize+"px Georgia,serif";ctx.fillText(d.title+" "+d.flag,panelX+panelW/2,panelY+topPad+titleSize);
+ ctx.fillText(title,panelX+panelW/2,panelY+topPad+titleSize);
+
+ let y=panelY+topPad+titleSize+sectionGap;
+ const leftX=panelX+pad;
+ const rightX=leftX+colW+colGap;
+
+ /* TOP SECTION: Plus Code + Address / Latitude + Longitude */
  ctx.textAlign="left";
- let y=panelY+topPad+titleSize+titleGap;
- // Plus Code BEFORE address.
- ctx.font="bold "+normalSize+"px Georgia,serif";for(const line of layout.plus){ctx.fillText(line,panelX+pad,y);y+=normalSize+gap;}
- y+=sectionGap;
- // Address at 24pt.
- ctx.font="bold "+addressSize+"px Georgia,serif";for(const line of layout.address){ctx.fillText(line,panelX+pad,y);y+=addressSize+gap;}
- y+=sectionGap;
- // Day/date/time/GMT on a single line.
- ctx.font="bold "+dateSize+"px Georgia,serif";ctx.fillText(dateText,panelX+pad,y);y+=dateSize+gap+sectionGap;
- // GPS section below the address/date section.
- ctx.strokeStyle="#FBBC09";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(panelX+pad,y-normalSize*.65);ctx.lineTo(panelX+panelW-pad,y-normalSize*.65);ctx.stroke();
- y+=sectionGap/2;
- ctx.font="bold "+normalSize+"px Georgia,serif";for(const line of layout.gps){ctx.fillText(line,panelX+pad,y);y+=normalSize+gap;}
- // Additional information + Visited By.
- if(layout.extra.length||layout.visited.length){y+=sectionGap/2;ctx.beginPath();ctx.moveTo(panelX+pad,y-normalSize*.65);ctx.lineTo(panelX+panelW-pad,y-normalSize*.65);ctx.stroke();y+=sectionGap;for(const line of layout.extra){ctx.fillText(line,panelX+pad,y);y+=normalSize+gap;}for(const line of layout.visited){ctx.fillText(line,panelX+pad,y);y+=normalSize+gap;}}
+
+ ctx.font=normalFont;
+ for(const line of topLeft){
+   ctx.fillText(line,leftX,y);
+   y+=fontSize+lineGap;
+ }
+
+ let ry=panelY+topPad+titleSize+sectionGap;
+ for(let i=0;i<topRight.length;i++){
+   ctx.font=(i===0?addressFont:normalFont);
+   ctx.fillText(topRight[i],rightX,ry);
+   ry+=(i===0?addressSize+addressGap:fontSize+lineGap);
+ }
+
+ /* Vertical divider only through the top section. */
+ ctx.strokeStyle="#FBBC09";
+ ctx.lineWidth=1.5;
+ const topSectionBottom=y;
+ ctx.beginPath();
+ ctx.moveTo(panelX+panelW/2,panelY+topPad+titleSize+sectionGap-fontSize*.7);
+ ctx.lineTo(panelX+panelW/2,topSectionBottom-fontSize*.25);
+ ctx.stroke();
+
+ /* Divider before second section. */
+ const secondY=panelY+topPad+titleSize+sectionGap+topHeight+sectionGap*.45;
+ ctx.beginPath();
+ ctx.moveTo(panelX+pad,secondY-fontSize*.75);
+ ctx.lineTo(panelX+panelW-pad,secondY-fontSize*.75);
+ ctx.stroke();
+
+ /* SECOND SECTION: Day | Date | Time | GMT, then Accuracy. */
+ y=secondY;
+ ctx.font=normalFont;
+ for(const line of secondLines){
+   ctx.fillText(line,leftX,y);
+   y+=fontSize+lineGap;
+ }
+
+ /* Divider before third section. */
+ const thirdY=secondY+secondHeight+sectionGap*.45;
+
+ if(thirdLines.length){
+   ctx.beginPath();
+   ctx.moveTo(panelX+pad,thirdY-fontSize*.75);
+   ctx.lineTo(panelX+panelW-pad,thirdY-fontSize*.75);
+   ctx.stroke();
+
+   y=thirdY;
+   ctx.font=normalFont;
+
+   for(const line of thirdLines){
+     ctx.fillText(line,leftX,y);
+     y+=fontSize+lineGap;
+   }
+ }
+
+ /* Company logo: bottom-right, inside the information box. */
+ if(logoImage){
+   const maxLogoW=Math.min(panelW*.18,180);
+   const maxLogoH=Math.min(panelH*.16,100);
+   const scale=Math.min(maxLogoW/logoImage.width,maxLogoH/logoImage.height,1);
+   const lw=logoImage.width*scale;
+   const lh=logoImage.height*scale;
+   const lx=panelX+panelW-pad-lw;
+   const ly=panelY+panelH-bottomPad-lh;
+
+   ctx.drawImage(logoImage,lx,ly,lw,lh);
+ }
+
  ctx.textAlign="left";
+
  canvas.toBlob(blob=>{
-  if(!blob){msg("Could not create photo.");return;}
-  if(imageUrl)URL.revokeObjectURL(imageUrl);
-  imageUrl=URL.createObjectURL(blob);
-  preview.src=imageUrl;preview.style.display="block";video.style.display="none";stopCamera();
-  capture.classList.add("hidden");switchCamera.classList.add("hidden");zoomIn.classList.add("hidden");zoomOut.classList.add("hidden");zoomLabel.classList.add("hidden");retake.classList.remove("hidden");download.classList.remove("hidden");
-  msg("Photo captured. Downloading automatically.");
-  const a=document.createElement("a");a.href=imageUrl;a.download="GPS-PHOTO-"+new Date().toISOString().replace(/[:.]/g,"-")+".jpg";document.body.appendChild(a);a.click();a.remove();
+   if(!blob){
+     msg("Could not create the JPG.");
+     return;
+   }
+
+   if(imageUrl)URL.revokeObjectURL(imageUrl);
+
+   imageUrl=URL.createObjectURL(blob);
+
+   preview.src=imageUrl;
+   preview.style.display="block";
+   video.style.display="none";
+
+   stopCamera();
+
+   capture.classList.add("hidden");
+   switchCamera.classList.add("hidden");
+   zoomIn.classList.add("hidden");
+   zoomOut.classList.add("hidden");
+   zoomLabel.classList.add("hidden");
+
+   retake.classList.remove("hidden");
+   download.classList.remove("hidden");
+
+   msg("Photo captured. Downloading automatically.");
+
+   const a=document.createElement("a");
+   a.href=imageUrl;
+   a.download="GPS-PHOTO-"+now.toISOString().slice(0,10)+"-"+now.toTimeString().slice(0,8).replace(/:/g,"-")+".jpg";
+   document.body.appendChild(a);
+   a.click();
+   a.remove();
  },"image/jpeg",.94);
 }
-ready.addEventListener("click",readyPressed);
+
+ready.addEventListener("click",async()=>{
+ if(!secureOK()){
+   msg("Camera and GPS require HTTPS.");
+   return;
+ }
+
+ if(!navigator.mediaDevices?.getUserMedia){
+   msg("This browser does not support camera access.");
+   return;
+ }
+
+ ready.disabled=true;
+ ready.textContent="STARTING...";
+
+ const ok=await startCamera();
+
+ if(!ok){
+   ready.disabled=false;
+   ready.textContent="READY";
+   return;
+ }
+
+ getGPS();
+
+ if(gpsTimer)clearInterval(gpsTimer);
+ gpsTimer=setInterval(getGPS,60000);
+
+ ready.textContent="READY ✓";
+});
+
 switchCamera.addEventListener("click",switchCam);
 capture.addEventListener("click",capturePhoto);
+
 zoomIn.addEventListener("click",()=>setZoom(zoomLevel+.2));
 zoomOut.addEventListener("click",()=>setZoom(zoomLevel-.2));
+
 additional.addEventListener("input",updateLive);
 visitedBy.addEventListener("input",updateLive);
 
+logoInput.addEventListener("change",e=>loadLogo(e.target.files[0]));
+
 retake.addEventListener("click",async()=>{
  preview.style.display="none";
- await startCamera();
- getGPS();
+ const ok=await startCamera();
+ if(ok)getGPS();
 });
 
 download.addEventListener("click",()=>{
- if(!imageUrl)return;
+ if(!imageUrl){
+   msg("There is no captured photo to download.");
+   return;
+ }
+
  const a=document.createElement("a");
- a.href=imageUrl;a.download="GPS-PHOTO-"+new Date().toISOString().replace(/[:.]/g,"-")+".jpg";
- document.body.appendChild(a);a.click();a.remove();
+ a.href=imageUrl;
+ a.download="GPS-PHOTO-"+new Date().toISOString().slice(0,10)+".jpg";
+ document.body.appendChild(a);
+ a.click();
+ a.remove();
 });
 
 window.addEventListener("beforeunload",()=>{
@@ -441,7 +747,6 @@ window.addEventListener("beforeunload",()=>{
  stopCamera();
  if(imageUrl)URL.revokeObjectURL(imageUrl);
 });
-})();
 </script>
 </body>
 </html>
