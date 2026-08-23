@@ -3,23 +3,45 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
 <title>GPS PHOTO: GEO TAGGING</title>
 <style>
-:root{--maroon:#A20404;--gold:#FBBC09}
+:root{
+  --maroon:#A20404;
+  --gold:#FBBC09;
+  --bg:#f3f4f6;
+}
 *{box-sizing:border-box}
-html,body{margin:0;background:#f3f4f6;color:#111;font-family:Arial,sans-serif}
+html,body{margin:0;padding:0;background:var(--bg);color:#111;font-family:Arial,sans-serif}
 header{background:#fff;padding:12px;border-bottom:1px solid #ddd;text-align:center}
 header h1{margin:0;font-size:20px}
 main{max-width:1100px;margin:auto;padding:12px}
 .card{background:#fff;border-radius:15px;padding:12px;box-shadow:0 2px 12px #0001}
-.camera{position:relative;background:#111;border-radius:12px;overflow:hidden;min-height:280px;display:flex;justify-content:center;align-items:center}
+.camera{
+  position:relative;background:#111;border-radius:12px;overflow:hidden;
+  min-height:280px;display:flex;align-items:center;justify-content:center
+}
 #placeholder{color:#ddd;text-align:center;padding:25px}
 #placeholder .icon{font-size:55px}
-#video{display:none;width:100%;height:auto;max-height:78vh;object-fit:contain;background:#000}
-#liveBox{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.5);border:2px solid var(--gold);border-radius:12px;padding:9px;color:#000;font-family:Georgia,serif;pointer-events:none}
-.liveLine{font-weight:700;font-size:24px;line-height:1.15;margin:3px 0;overflow:hidden;text-align:center}
+#video{
+  display:none;width:100%;height:auto;max-height:78vh;
+  object-fit:contain;background:#000;transform-origin:center center
+}
+#liveBox{
+  display:none;position:absolute;left:3%;right:3%;bottom:3%;
+  background:rgba(255,255,255,.50);border:2px solid var(--gold);
+  border-radius:12px;padding:9px;color:#000;
+  font-family:Georgia,"Times New Roman",serif;pointer-events:none
+}
+.liveLine{
+  font-weight:700;font-size:24px;line-height:1.15;
+  margin:3px 0;overflow:hidden;text-align:center
+}
 .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-button{border:0;border-radius:9px;padding:12px 15px;min-height:46px;font-weight:800;font-size:15px}
+button{
+  border:0;border-radius:9px;padding:12px 15px;min-height:46px;
+  font-weight:800;font-size:15px
+}
 button:disabled{opacity:.45}
 #ready{background:#16a34a;color:#fff}
 #capture{background:#2563eb;color:#fff}
@@ -27,22 +49,39 @@ button:disabled{opacity:.45}
 .zoom{background:#111827;color:#fff;font-size:20px;min-width:48px}
 .zoomText{align-self:center;font-weight:800}
 label{display:block;font-weight:800;margin:14px 0 6px}
-input[type=text],input[type=file]{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
+input[type=text],input[type=file]{
+  width:100%;padding:11px;border:1px solid #cbd5e1;
+  border-radius:8px;font-size:16px
+}
 input[type=file]{background:#f8fafc}
-#logoPreview{display:none;max-width:150px;max-height:80px;margin-top:7px;border:1px solid #bbb;border-radius:6px}
+#logoPreview{
+  display:none;max-width:150px;max-height:80px;margin-top:7px;
+  border:1px solid #bbb;border-radius:6px
+}
 #status{margin-top:10px;background:#f1f5f9;padding:10px;border-radius:8px;font-size:14px}
 .warning{background:#fff7ed!important;color:#9a3412}
 .hidden{display:none!important}
 </style>
 </head>
+
 <body>
 <header><h1>GPS PHOTO: GEO TAGGING</h1></header>
+
 <main>
 <div class="card">
+
   <div class="camera">
-    <div id="placeholder"><div class="icon">📷</div><h2>GPS PHOTO: GEO TAGGING</h2><p>Press READY to start.</p></div>
+    <div id="placeholder">
+      <div class="icon">📷</div>
+      <h2>GPS PHOTO: GEO TAGGING</h2>
+      <p>Press READY to start.</p>
+    </div>
+
     <video id="video" autoplay muted playsinline></video>
-    <div id="liveBox"><div id="liveLines"></div></div>
+
+    <div id="liveBox">
+      <div id="liveLines"></div>
+    </div>
   </div>
 
   <div class="controls">
@@ -54,27 +93,32 @@ input[type=file]{background:#f8fafc}
     <button id="capture" class="hidden">CAPTURE PHOTO</button>
   </div>
 
-  <label>Additional Information</label>
+  <label for="additional">Additional Information</label>
   <input id="additional" type="text" placeholder="Enter additional information">
 
-  <label>Visited By</label>
+  <label for="visited">Visited By</label>
   <input id="visited" type="text" placeholder="Enter name">
 
-  <label>Company Logo</label>
+  <label for="logo">Company Logo</label>
   <input id="logo" type="file" accept="image/png,image/jpeg,image/webp">
   <img id="logoPreview" alt="Logo preview">
 
   <div id="status">Press READY.</div>
+
   <div id="httpsWarning" class="warning hidden">
-    Camera and GPS require HTTPS. Publish this index.html on GitHub Pages, Netlify, or another HTTPS host.
+    Camera and GPS require HTTPS. Publish this index.html on GitHub Pages,
+    Netlify, or another HTTPS host.
   </div>
+
 </div>
 </main>
 
 <script>
-/* FINAL FONT SETTINGS: ADDRESS 36pt; GPS/DATE/TIME/GMT/ACCURACY 24pt */
 "use strict";
 
+/* =========================================================
+   ELEMENTS
+   ========================================================= */
 const video=document.getElementById("video");
 const placeholder=document.getElementById("placeholder");
 const liveBox=document.getElementById("liveBox");
@@ -92,236 +136,544 @@ const logoPreview=document.getElementById("logoPreview");
 const status=document.getElementById("status");
 const httpsWarning=document.getElementById("httpsWarning");
 
+/* =========================================================
+   STATE
+   ========================================================= */
 let stream=null;
-let timer=null;
+let gpsTimer=null;
 let facing="environment";
 let zoom=1;
 let logoImage=null;
-let lastUrl=null;
+let lastObjectUrl=null;
 
 const gps={
-  lat:null,lon:null,accuracy:null,address:"",
-  countryCode:"",countryName:"",plusCode:""
+  lat:null,
+  lon:null,
+  accuracy:null,
+  address:"",
+  countryCode:"",
+  countryName:"",
+  plusCode:""
 };
 
-function secure(){
-  return window.isSecureContext||location.hostname==="localhost"||location.hostname==="127.0.0.1";
+/* =========================================================
+   SECURITY
+   ========================================================= */
+function isSecure(){
+  return window.isSecureContext ||
+         location.hostname==="localhost" ||
+         location.hostname==="127.0.0.1";
 }
-if(!secure())httpsWarning.classList.remove("hidden");
 
-function msg(t){status.textContent=t}
+if(!isSecure()){
+  httpsWarning.classList.remove("hidden");
+}
 
-function flag(code){
+function setStatus(text){
+  status.textContent=text;
+}
+
+/* =========================================================
+   COUNTRY FLAG
+   ========================================================= */
+function countryFlag(code){
   code=String(code||"").toUpperCase();
-  if(!/^[A-Z]{2}$/.test(code))return"";
-  return String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0)));
+  if(!/^[A-Z]{2}$/.test(code)) return "";
+  return String.fromCodePoint(
+    ...[...code].map(c=>127397+c.charCodeAt(0))
+  );
 }
 
-function gmt(d=new Date()){
-  const m=-d.getTimezoneOffset(),s=m>=0?"+":"-",a=Math.abs(m);
-  return"GMT"+s+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
+/* =========================================================
+   DATE / TIME
+   ========================================================= */
+function getGMTOffset(date=new Date()){
+  const minutes=-date.getTimezoneOffset();
+  const sign=minutes>=0?"+":"-";
+  const absolute=Math.abs(minutes);
+  const h=String(Math.floor(absolute/60)).padStart(2,"0");
+  const m=String(absolute%60).padStart(2,"0");
+  return "GMT"+sign+h+":"+m;
 }
 
-function timeInfo(){
+function dateTimeInfo(){
   const d=new Date();
-  return{
+
+  return {
     day:d.toLocaleDateString(undefined,{weekday:"long"}),
     date:d.toLocaleDateString("en-GB"),
-    time:d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true}),
-    gmt:gmt(d)
+    time:d.toLocaleTimeString([],{
+      hour:"numeric",
+      minute:"2-digit",
+      hour12:true
+    }),
+    gmt:getGMTOffset(d)
   };
 }
 
-/* Open Location Code compatible pair encoder */
-function plusCode(lat,lon){
+/* =========================================================
+   PLUS CODE
+   ========================================================= */
+function generatePlusCode(latitude,longitude){
+  /*
+    Open Location Code compatible short/full precision encoder.
+    Produces a 10-digit Plus Code such as 7MF6RQ8R+8P.
+  */
   const alphabet="23456789CFGHJMPQRVWX";
-  lat=Math.max(-90,Math.min(90,Number(lat)));
-  lon=((Number(lon)+180)%360+360)%360-180;
-  if(lat===90)lat-=1e-12;
-  lat+=90;lon+=180;
-  const res=[20,1,.05,.0025];
-  let out="";
-  for(const r of res){
-    let a=Math.max(0,Math.min(19,Math.floor(lat/r)));
-    let b=Math.max(0,Math.min(19,Math.floor(lon/r)));
-    out+=alphabet[a]+alphabet[b];
-    lat-=a*r;lon-=b*r;
+
+  let lat=Number(latitude);
+  let lon=Number(longitude);
+
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)) return "";
+
+  lat=Math.max(-90,Math.min(90,lat));
+  lon=((lon+180)%360+360)%360-180;
+
+  if(lat===90) lat-=1e-12;
+
+  lat+=90;
+  lon+=180;
+
+  const placeValues=[20,1,.05,.0025,.000125];
+
+  let code="";
+
+  for(const placeValue of placeValues){
+    let latDigit=Math.floor(lat/placeValue);
+    let lonDigit=Math.floor(lon/placeValue);
+
+    latDigit=Math.max(0,Math.min(19,latDigit));
+    lonDigit=Math.max(0,Math.min(19,lonDigit));
+
+    code+=alphabet[latDigit]+alphabet[lonDigit];
+
+    lat-=latDigit*placeValue;
+    lon-=lonDigit*placeValue;
   }
-  return out.slice(0,8)+"+"+out.slice(8,10);
+
+  return code.slice(0,8)+"+"+code.slice(8,10);
 }
 
-function wrap(ctx,text,font,maxWidth){
+/* =========================================================
+   TEXT WRAPPING
+   ========================================================= */
+function wrapText(ctx,text,font,maxWidth){
   ctx.font=font;
+
   const words=String(text||"").trim().split(/\s+/);
-  if(!words.length||!words[0])return[];
-  const lines=[];let line="";
+  if(!words.length||!words[0]) return [];
+
+  const lines=[];
+  let line="";
+
   for(const word of words){
-    let test=line?line+" "+word:word;
-    if(ctx.measureText(test).width<=maxWidth){line=test;continue}
-    if(line){lines.push(line);line=""}
-    if(ctx.measureText(word).width<=maxWidth){line=word;continue}
-    let piece="";
-    for(const ch of word){
-      if(ctx.measureText(piece+ch).width<=maxWidth)piece+=ch;
-      else{if(piece)lines.push(piece);piece=ch}
+    const candidate=line?line+" "+word:word;
+
+    if(ctx.measureText(candidate).width<=maxWidth){
+      line=candidate;
+      continue;
     }
+
+    if(line){
+      lines.push(line);
+      line="";
+    }
+
+    if(ctx.measureText(word).width<=maxWidth){
+      line=word;
+      continue;
+    }
+
+    let piece="";
+
+    for(const ch of word){
+      if(ctx.measureText(piece+ch).width<=maxWidth){
+        piece+=ch;
+      }else{
+        if(piece) lines.push(piece);
+        piece=ch;
+      }
+    }
+
     line=piece;
   }
-  if(line)lines.push(line);
+
+  if(line) lines.push(line);
+
   return lines;
 }
 
+/* =========================================================
+   CAMERA
+   ========================================================= */
 function stopCamera(){
-  if(stream)stream.getTracks().forEach(t=>t.stop());
-  stream=null;video.srcObject=null;liveBox.style.display="none";
+  if(stream){
+    stream.getTracks().forEach(track=>track.stop());
+  }
+
+  stream=null;
+  video.srcObject=null;
+  liveBox.style.display="none";
 }
 
 async function startCamera(){
   try{
+    if(!navigator.mediaDevices?.getUserMedia){
+      setStatus("Camera is not supported by this browser.");
+      return false;
+    }
+
     stopCamera();
+
     stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080}},
+      video:{
+        facingMode:{ideal:facing},
+        width:{ideal:1920},
+        height:{ideal:1080}
+      },
       audio:false
     });
+
     video.srcObject=stream;
     await video.play();
+
     placeholder.style.display="none";
     video.style.display="block";
     liveBox.style.display="block";
+
     switchCamera.classList.remove("hidden");
     zoomOut.classList.remove("hidden");
     zoomIn.classList.remove("hidden");
     zoomText.classList.remove("hidden");
     capture.classList.remove("hidden");
+
     zoom=1;
     video.style.transform="scale(1)";
-    zoomUI();
-    updateLive();
+    updateZoomUI();
+    updateLiveOverlay();
+
     return true;
-  }catch(e){
-    if(e.name==="NotAllowedError")msg("Camera permission denied. Allow camera access in browser settings.");
-    else msg("Camera error: "+(e.message||e.name));
+
+  }catch(error){
+
+    if(error.name==="NotAllowedError"){
+      setStatus("Camera permission denied. Allow camera access in browser settings.");
+    }else{
+      setStatus("Camera error: "+(error.message||error.name));
+    }
+
     return false;
   }
 }
 
-async function switchCam(){
+/* =========================================================
+   CAMERA SWITCH
+   ========================================================= */
+async function switchCameraMode(){
   facing=facing==="environment"?"user":"environment";
   await startCamera();
   getGPS();
 }
 
-async function setZoom(z){
-  z=Math.max(1,Math.min(8,z));
+/* =========================================================
+   ZOOM
+   ========================================================= */
+async function setZoom(value){
+  value=Math.max(1,Math.min(8,value));
+
   const track=stream?.getVideoTracks?.()[0];
+
   if(track){
     try{
-      const c=track.getCapabilities?.()||{};
-      if(c.zoom){
-        const min=Number(c.zoom.min??1),max=Math.min(8,Number(c.zoom.max??8)),step=Number(c.zoom.step??.1);
-        z=Math.min(max,Math.max(min,Math.round(z/step)*step));
-        await track.applyConstraints({advanced:[{zoom:z}]});
+      const capabilities=track.getCapabilities?.()||{};
+
+      if(capabilities.zoom){
+        const min=Number(capabilities.zoom.min??1);
+        const max=Math.min(8,Number(capabilities.zoom.max??8));
+        const step=Number(capabilities.zoom.step??.1);
+
+        value=Math.min(
+          max,
+          Math.max(
+            min,
+            Math.round(value/step)*step
+          )
+        );
+
+        await track.applyConstraints({
+          advanced:[{zoom:value}]
+        });
+
         video.style.transform="scale(1)";
-      }else video.style.transform="scale("+z+")";
-    }catch(e){video.style.transform="scale("+z+")"}
+
+      }else{
+        video.style.transform="scale("+value+")";
+      }
+
+    }catch{
+      video.style.transform="scale("+value+")";
+    }
   }
-  zoom=z;zoomUI();
+
+  zoom=value;
+  updateZoomUI();
 }
-function zoomUI(){
+
+function updateZoomUI(){
   zoomText.textContent="Zoom "+zoom.toFixed(1)+"×";
-  zoomOut.disabled=zoom<=1;zoomIn.disabled=zoom>=8;
+  zoomOut.disabled=zoom<=1;
+  zoomIn.disabled=zoom>=8;
 }
 
-async function geocode(lat,lon){
-  try{
-    const u="https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon);
-    const r=await fetch(u,{headers:{Accept:"application/json"}});
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    const d=await r.json(),a=d.address||{};
-    gps.address=d.display_name||[
-      a.road,a.neighbourhood,a.suburb,a.village,a.town,a.city,
-      a.district,a.state_district,a.state,a.postcode,a.country
-    ].filter(Boolean).join(", ")||gps.address||"Address unavailable";
-    gps.countryCode=String(a.country_code||gps.countryCode||"").toUpperCase();
-    gps.countryName=String(a.country||gps.countryName||"").trim();
+/* =========================================================
+   REVERSE GEOCODING
+   ========================================================= */
+async function reverseGeocode(lat,lon){
 
-    /* Put flag directly after the country at the end of the address. */
-    const f=flag(gps.countryCode);
+  try{
+    const url=
+      "https://nominatim.openstreetmap.org/reverse"+
+      "?format=jsonv2"+
+      "&addressdetails=1"+
+      "&zoom=18"+
+      "&lat="+encodeURIComponent(lat)+
+      "&lon="+encodeURIComponent(lon);
+
+    const response=await fetch(url,{
+      headers:{Accept:"application/json"}
+    });
+
+    if(!response.ok){
+      throw new Error("HTTP "+response.status);
+    }
+
+    const data=await response.json();
+    const a=data.address||{};
+
+    gps.address=
+      data.display_name ||
+      [
+        a.road,
+        a.neighbourhood,
+        a.suburb,
+        a.village,
+        a.town,
+        a.city,
+        a.district,
+        a.state_district,
+        a.state,
+        a.postcode,
+        a.country
+      ].filter(Boolean).join(", ") ||
+      gps.address ||
+      "Address unavailable";
+
+    gps.countryCode=
+      String(a.country_code||gps.countryCode||"").toUpperCase();
+
+    gps.countryName=
+      String(a.country||gps.countryName||"").trim();
+
+    const f=countryFlag(gps.countryCode);
+
     if(f&&!gps.address.includes(f)){
       if(gps.countryName){
-        const i=gps.address.toLowerCase().lastIndexOf(gps.countryName.toLowerCase());
-        if(i>=0){
-          gps.address=gps.address.slice(0,i)+gps.address.slice(i,i+gps.countryName.length)+ " "+f + gps.address.slice(i+gps.countryName.length);
-        }else gps.address+=", "+gps.countryName+" "+f;
-      }else gps.address+=" "+f;
+        const lower=gps.address.toLowerCase();
+        const countryLower=gps.countryName.toLowerCase();
+        const index=lower.lastIndexOf(countryLower);
+
+        if(index>=0){
+          gps.address=
+            gps.address.slice(0,index)+
+            gps.address.slice(index,index+gps.countryName.length)+
+            " "+f+
+            gps.address.slice(index+gps.countryName.length);
+        }else{
+          gps.address+=" "+f;
+        }
+      }else{
+        gps.address+=" "+f;
+      }
     }
-    updateLive();
-  }catch(e){
-    msg("GPS is working, but address lookup is temporarily unavailable.");
+
+    updateLiveOverlay();
+
+  }catch(error){
+    setStatus("GPS is working, but address lookup is temporarily unavailable.");
   }
 }
 
-function positionUpdate(p){
-  gps.lat=Number(p.coords.latitude);
-  gps.lon=Number(p.coords.longitude);
-  gps.accuracy=Number(p.coords.accuracy);
-  gps.plusCode=plusCode(gps.lat,gps.lon);
-  updateLive();
+/* =========================================================
+   GPS
+   ========================================================= */
+function applyGPSPosition(position){
+  gps.lat=Number(position.coords.latitude);
+  gps.lon=Number(position.coords.longitude);
+  gps.accuracy=Number(position.coords.accuracy);
+
+  gps.plusCode=generatePlusCode(gps.lat,gps.lon);
+
+  updateLiveOverlay();
 }
 
 function getGPS(){
-  if(!navigator.geolocation){msg("GPS is not supported by this browser.");return}
-  navigator.geolocation.getCurrentPosition(async p=>{
-    positionUpdate(p);
-    await geocode(gps.lat,gps.lon);
-    msg("GPS updated: "+new Date().toLocaleTimeString());
-  },e=>{
-    if(e.code===1)msg("Location permission denied. Allow Location access in browser settings.");
-    else msg("Unable to get GPS location. Trying again.");
-  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+  if(!navigator.geolocation){
+    setStatus("GPS is not supported by this browser.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async position=>{
+      applyGPSPosition(position);
+
+      await reverseGeocode(
+        gps.lat,
+        gps.lon
+      );
+
+      setStatus("GPS updated: "+new Date().toLocaleTimeString());
+    },
+    error=>{
+      if(error.code===1){
+        setStatus("Location permission denied. Allow Location access in browser settings.");
+      }else{
+        setStatus("Unable to get GPS location. Trying again.");
+      }
+    },
+    {
+      enableHighAccuracy:true,
+      timeout:20000,
+      maximumAge:0
+    }
+  );
 }
 
 function freshGPS(){
   return new Promise((resolve,reject)=>{
-    navigator.geolocation.getCurrentPosition(async p=>{
-      positionUpdate(p);
-      await geocode(gps.lat,gps.lon);
-      resolve();
-    },reject,{enableHighAccuracy:true,timeout:12000,maximumAge:0});
+    if(!navigator.geolocation){
+      reject(new Error("GPS unavailable"));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async position=>{
+        applyGPSPosition(position);
+
+        try{
+          await reverseGeocode(
+            gps.lat,
+            gps.lon
+          );
+        }catch{}
+
+        resolve();
+      },
+      reject,
+      {
+        enableHighAccuracy:true,
+        timeout:12000,
+        maximumAge:0
+      }
+    );
   });
 }
 
-function updateLive(){
-  if(!stream)return;
-  const t=timeInfo();
+/* =========================================================
+   LIVE OVERLAY
+   ========================================================= */
+function escapeHTML(value){
+  return String(value).replace(/[&<>"]/g,ch=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;"
+  }[ch]));
+}
+
+function updateLiveOverlay(){
+
+  if(!stream) return;
+
+  const t=dateTimeInfo();
+
   const lines=[
     gps.address||"Waiting for address...",
     gps.plusCode||"—",
-    "LATITUDE: "+(gps.lat==null?"—":gps.lat.toFixed(6)+"°")+"   |   LONGITUDE: "+(gps.lon==null?"—":gps.lon.toFixed(6)+"°"),
-    t.day+" | DATE: "+t.date+" | TIME: "+t.time+" | "+t.gmt,
-    "ACCURACY: "+(gps.accuracy==null?"—":Math.round(gps.accuracy)+" m")
+    "LATITUDE: "+(
+      gps.lat==null?"—":gps.lat.toFixed(6)+"°"
+    )+
+    "   |   LONGITUDE: "+(
+      gps.lon==null?"—":gps.lon.toFixed(6)+"°"
+    ),
+    t.day+
+    " | DATE: "+t.date+
+    " | TIME: "+t.time+
+    " | "+t.gmt,
+    "ACCURACY: "+
+    (
+      gps.accuracy==null?
+      "—":
+      Math.round(gps.accuracy)+" m"
+    )
   ];
-  if(additional.value.trim())lines.push(additional.value.trim());
-  if(visited.value.trim())lines.push("Visited By: "+visited.value.trim());
-  liveLines.innerHTML=lines.map(x=>"<div class='liveLine'>"+x.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</div>").join("");
+
+  if(additional.value.trim()){
+    lines.push(additional.value.trim());
+  }
+
+  if(visited.value.trim()){
+    lines.push("Visited By: "+visited.value.trim());
+  }
+
+  liveLines.innerHTML=
+    lines.map(line=>
+      "<div class='liveLine'>"+
+      escapeHTML(line)+
+      "</div>"
+    ).join("");
 }
 
+/* =========================================================
+   LOGO
+   ========================================================= */
 logo.addEventListener("change",()=>{
-  const f=logo.files[0];if(!f)return;
+  const file=logo.files?.[0];
+
+  if(!file){
+    logoImage=null;
+    logoPreview.style.display="none";
+    return;
+  }
+
   const reader=new FileReader();
-  reader.onload=e=>{
-    const im=new Image();
-    im.onload=()=>{logoImage=im;logoPreview.src=e.target.result;logoPreview.style.display="block"};
-    im.src=e.target.result;
+
+  reader.onload=event=>{
+    const image=new Image();
+
+    image.onload=()=>{
+      logoImage=image;
+      logoPreview.src=event.target.result;
+      logoPreview.style.display="block";
+    };
+
+    image.src=event.target.result;
   };
-  reader.readAsDataURL(f);
+
+  reader.readAsDataURL(file);
 });
 
-additional.addEventListener("input",updateLive);
-visited.addEventListener("input",updateLive);
+/* =========================================================
+   LIVE INPUTS
+   ========================================================= */
+additional.addEventListener("input",updateLiveOverlay);
+visited.addEventListener("input",updateLiveOverlay);
 
-function drawRoundedRect(ctx,x,y,w,h,r){
+/* =========================================================
+   CANVAS HELPERS
+   ========================================================= */
+function roundedRect(ctx,x,y,w,h,r){
   r=Math.min(r,w/2,h/2);
+
   ctx.beginPath();
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+w,y,x+w,y+h,r);
@@ -331,236 +683,756 @@ function drawRoundedRect(ctx,x,y,w,h,r){
   ctx.closePath();
 }
 
-function capturePhoto(){
-  if(!stream||!video.videoWidth){msg("Camera is not ready.");return}
-  capture.disabled=true;
-  msg("Getting current GPS position...");
-  freshGPS().catch(()=>{}).then(renderPhoto);
+function textHeight(lines,size,gap,blockGap){
+  if(!lines.length) return 0;
+  return lines.length*(size+gap)+blockGap-gap;
 }
 
-function renderPhoto(){
-  if(gps.lat!=null&&gps.lon!=null)gps.plusCode=plusCode(gps.lat,gps.lon);
+/* =========================================================
+   CAPTURE
+   ========================================================= */
+async function capturePhoto(){
 
-  const sw=video.videoWidth,sh=video.videoHeight;
-  const border=Math.max(6,Math.round(sw*.006));
-  const W=sw+border*2,H=sh+border*2;
+  if(!stream||!video.videoWidth){
+    setStatus("Camera is not ready.");
+    return;
+  }
+
+  capture.disabled=true;
+  setStatus("Getting current GPS position...");
+
+  try{
+    await freshGPS();
+  }catch{
+    /* Keep the last valid GPS reading. */
+  }
+
+  renderFinalPhoto();
+}
+
+/* =========================================================
+   FINAL CANVAS RENDERER
+   ========================================================= */
+function renderFinalPhoto(){
+
+  if(
+    gps.lat!=null&&
+    gps.lon!=null
+  ){
+    gps.plusCode=
+      generatePlusCode(
+        gps.lat,
+        gps.lon
+      );
+  }
+
+  const sourceW=video.videoWidth;
+  const sourceH=video.videoHeight;
+
+  const border=
+    Math.max(
+      6,
+      Math.round(sourceW*.006)
+    );
+
+  const W=sourceW+border*2;
+  const H=sourceH+border*2;
+
   const canvas=document.createElement("canvas");
-  canvas.width=W;canvas.height=H;
+  canvas.width=W;
+  canvas.height=H;
+
   const ctx=canvas.getContext("2d");
 
-  /* Camera image */
+  /* ---------------------------------------------------------
+     CAMERA FRAME
+     --------------------------------------------------------- */
   if(zoom<=1.001){
-    ctx.drawImage(video,border,border,sw,sh);
+
+    ctx.drawImage(
+      video,
+      border,
+      border,
+      sourceW,
+      sourceH
+    );
+
   }else{
-    const cw=sw/zoom,ch=sh/zoom,cx=(sw-cw)/2,cy=(sh-ch)/2;
-    ctx.drawImage(video,cx,cy,cw,ch,border,border,sw,sh);
+
+    const cropW=sourceW/zoom;
+    const cropH=sourceH/zoom;
+    const cropX=(sourceW-cropW)/2;
+    const cropY=(sourceH-cropH)/2;
+
+    ctx.drawImage(
+      video,
+      cropX,
+      cropY,
+      cropW,
+      cropH,
+      border,
+      border,
+      sourceW,
+      sourceH
+    );
   }
 
-  /* Photo border */
-  ctx.lineWidth=border;ctx.strokeStyle="#A20404";
-  ctx.strokeRect(border/2,border/2,W-border,H-border);
+  /* ---------------------------------------------------------
+     PHOTO BORDER
+     --------------------------------------------------------- */
+  ctx.lineWidth=border;
+  ctx.strokeStyle="#A20404";
 
-  const panelW=Math.min(W-40,W*.92);
+  ctx.strokeRect(
+    border/2,
+    border/2,
+    W-border,
+    H-border
+  );
+
+  /* ---------------------------------------------------------
+     PANEL GEOMETRY
+     --------------------------------------------------------- */
+  const panelW=Math.min(
+    W-40,
+    W*.92
+  );
+
   const panelX=(W-panelW)/2;
-  const pad=Math.max(22,Math.round(W*.025));
+
+  const pad=Math.max(
+    22,
+    Math.round(W*.025)
+  );
+
   const contentW=panelW-pad*2;
 
-  const addressSize=48; /* 36pt */
-  let bodySize=32; /* 24pt */ /* 24pt */ /* 24pt */
-  const gap=Math.max(7,Math.round(bodySize*.18));
-  const blockGap=Math.max(10,Math.round(bodySize*.28));
-  const topPad=Math.max(22,Math.round(bodySize*.7));
-  const bottomPad=Math.max(22,Math.round(bodySize*.6));
-
-  const addressFont="bold "+addressSize+"px Georgia,serif";
-  const normalFont=size=>"bold "+size+"px Georgia,serif";
-
-  const addressLines=wrap(ctx,gps.address||"Address unavailable",addressFont,contentW);
-  const plusLines=wrap(ctx,gps.plusCode||"—",normalFont(bodySize),contentW);
-
   /*
-    CRITICAL: Latitude and Longitude are ONE canvas text operation.
-    They are NEVER passed through the wrapping function.
-    The font is reduced until the entire string fits.
+    Address = 36pt = 48px.
+    All other requested information = 24pt = 32px.
   */
-  const lat="LATITUDE: "+(gps.lat==null?"—":gps.lat.toFixed(6)+"°");
-  const lon="LONGITUDE: "+(gps.lon==null?"—":gps.lon.toFixed(6)+"°");
-  const latLonText=lat+"   |   "+lon;
+  const addressSize=48;
+  const bodySize=32;
 
-  let latLonSize=bodySize; while(latLonSize>24){
-    ctx.font=normalFont(latLonSize);
-    if(ctx.measureText(latLonText).width<=contentW)break;
-    latLonSize--;
-  }
-  const latLonFont=normalFont(latLonSize);
+  const addressFont=
+    "bold 48px Georgia,serif";
 
-  const t=timeInfo();
-  const dateText=t.day+" | DATE: "+t.date+" | TIME: "+t.time+" | "+t.gmt;
-  const dateLines=[dateText];
-  const accLines=wrap(ctx,"ACCURACY: "+(gps.accuracy==null?"—":Math.round(gps.accuracy)+" m"),normalFont(bodySize),contentW);
-  const extra=additional.value.trim();
-  const visitor=visited.value.trim();
-  const extraLines=extra?wrap(ctx,extra,normalFont(bodySize),contentW):[];
-  const visitorLines=visitor?wrap(ctx,"Visited By: "+visitor,normalFont(bodySize),contentW):[];
+  const normalFont=
+    size=>"bold "+size+"px Georgia,serif";
 
-  function sectionHeight(lines,size){
-    return lines.length*(size+gap)+blockGap;
-  }
+  const gap=Math.max(
+    7,
+    Math.round(bodySize*.18)
+  );
 
-  let panelH=topPad+
-    sectionHeight(addressLines,addressSize)+
-    sectionHeight(plusLines,bodySize)+
-    (latLonSize+gap+blockGap)+
-    (dateTimeSize+gap+blockGap)+
-    sectionHeight(accLines,bodySize)+
-    (extraLines.length?sectionHeight(extraLines,bodySize):0)+
-    (visitorLines.length?sectionHeight(visitorLines,bodySize):0);
+  const blockGap=Math.max(
+    10,
+    Math.round(bodySize*.28)
+  );
 
-  let logoW=0,logoH=0;
-  if(logoImage){
-    const maxW=Math.min(contentW*.22,180),maxH=Math.min(H*.10,110);
-    const s=Math.min(maxW/logoImage.width,maxH/logoImage.height,1);
-    logoW=logoImage.width*s;logoH=logoImage.height*s;
-    panelH+=logoH+blockGap*.5;
-  }
-  panelH+=bottomPad;
+  const topPad=Math.max(
+    22,
+    Math.round(bodySize*.7)
+  );
 
-  const panelY=Math.max(border+8,H-panelH-Math.max(18,H*.018));
+  const bottomPad=Math.max(
+    22,
+    Math.round(bodySize*.6)
+  );
 
-  /* Panel */
-  ctx.fillStyle="rgba(255,255,255,.50)";
-  drawRoundedRect(ctx,panelX,panelY,panelW,panelH,20);
-  ctx.fill();
-  ctx.lineWidth=Math.max(2,Math.round(W*.002));
-  ctx.strokeStyle="#FBBC09";
-  ctx.stroke();
+  /* ---------------------------------------------------------
+     TEXT CONTENT
+     --------------------------------------------------------- */
+  const addressText=
+    gps.address||
+    "Address unavailable";
 
-  /* =========================================================
-     FINAL CANVAS INFORMATION RENDERING
-     All text is centered.
-     Latitude + Longitude = ONE physical line.
-     Day + Date + Time + GMT = ONE physical line.
-     ========================================================= */
-  ctx.fillStyle="#000";
-  ctx.textAlign="center";
-  ctx.textBaseline="alphabetic";
-  const centerX=panelX+panelW/2;
-  let y=panelY+topPad;
+  const addressLines=
+    wrapText(
+      ctx,
+      addressText,
+      addressFont,
+      contentW
+    );
 
-  function drawCenteredWrapped(lines,font,size){
-    ctx.font=font;
-    for(const line of lines){
-      y+=size;
-      ctx.fillText(line,centerX,y);
-      y+=gap;
-    }
-    y+=blockGap-gap;
-  }
+  const plusCodeText=
+    gps.plusCode||"—";
 
-  /* Address: centered, 36pt, automatically wrapped. */
-  drawCenteredWrapped(addressLines,addressFont,addressSize);
+  const plusCodeLines=
+    wrapText(
+      ctx,
+      plusCodeText,
+      normalFont(bodySize),
+      contentW
+    );
 
-  /* Plus Code: centered, 24pt. */
-  drawCenteredWrapped(plusLines,normalFont(bodySize),bodySize);
+  /* ---------------------------------------------------------
+     LATITUDE + LONGITUDE
+     FORCE ONE PHYSICAL LINE
+     --------------------------------------------------------- */
+  const latText=
+    "LATITUDE: "+
+    (
+      gps.lat==null?
+      "—":
+      gps.lat.toFixed(6)+"°"
+    );
 
-  /* Latitude + Longitude: NEVER wrap. One physical line. */
+  const lonText=
+    "LONGITUDE: "+
+    (
+      gps.lon==null?
+      "—":
+      gps.lon.toFixed(6)+"°"
+    );
+
+  const latLonText=
+    latText+
+    "   |   "+
+    lonText;
+
   let latLonSize=bodySize;
-  const latText="LATITUDE: "+(gps.lat==null?"—":gps.lat.toFixed(6)+"°");
-  const lonText="LONGITUDE: "+(gps.lon==null?"—":gps.lon.toFixed(6)+"°");
-  const latLonText=latText+"   |   "+lonText;
 
   while(latLonSize>10){
-    ctx.font=normalFont(latLonSize);
-    if(ctx.measureText(latLonText).width<=contentW) break;
+
+    ctx.font=
+      normalFont(latLonSize);
+
+    if(
+      ctx.measureText(latLonText).width<=contentW
+    ){
+      break;
+    }
+
     latLonSize--;
   }
 
-  ctx.font=normalFont(latLonSize);
-  y+=latLonSize;
-  ctx.fillText(latLonText,centerX,y);
-  y+=gap+blockGap-gap;
+  const latLonFont=
+    normalFont(latLonSize);
 
-  /* Day + Date + Time + GMT: NEVER wrap. One physical line. */
+  /* ---------------------------------------------------------
+     DAY + DATE + TIME + GMT
+     FORCE ONE PHYSICAL LINE
+     --------------------------------------------------------- */
+  const t=dateTimeInfo();
+
   const dateTimeText=
-    t.day+" | DATE: "+t.date+" | TIME: "+t.time+" | "+t.gmt;
+    t.day+
+    " | DATE: "+
+    t.date+
+    " | TIME: "+
+    t.time+
+    " | "+
+    t.gmt;
 
   let dateTimeSize=bodySize;
+
   while(dateTimeSize>10){
-    ctx.font=normalFont(dateTimeSize);
-    if(ctx.measureText(dateTimeText).width<=contentW) break;
+
+    ctx.font=
+      normalFont(dateTimeSize);
+
+    if(
+      ctx.measureText(dateTimeText).width<=contentW
+    ){
+      break;
+    }
+
     dateTimeSize--;
   }
 
-  ctx.font=normalFont(dateTimeSize);
-  y+=dateTimeSize;
-  ctx.fillText(dateTimeText,centerX,y);
-  y+=gap+blockGap-gap;
+  const dateTimeFont=
+    normalFont(dateTimeSize);
 
-  /* Accuracy: centered. */
   const accuracyText=
-    "ACCURACY: "+(gps.accuracy==null?"—":Math.round(gps.accuracy)+" m");
-  drawCenteredWrapped([accuracyText],normalFont(bodySize),bodySize);
+    "ACCURACY: "+
+    (
+      gps.accuracy==null?
+      "—":
+      Math.round(gps.accuracy)+" m"
+    );
 
-  /* Additional Information: centered and wrapped. */
-  if(extraLines.length)
-    drawCenteredWrapped(extraLines,normalFont(bodySize),bodySize);
+  const accuracyLines=[
+    accuracyText
+  ];
 
-  /* Visited By: centered and wrapped. */
-  if(visitorLines.length)
-    drawCenteredWrapped(visitorLines,normalFont(bodySize),bodySize);
+  const extraText=
+    additional.value.trim();
 
-  /*
-    Company logo:
-    bottom-right INSIDE the information box.
-    It does not participate in text alignment.
-  */
+  const visitorText=
+    visited.value.trim();
+
+  const extraLines=
+    extraText?
+    wrapText(
+      ctx,
+      extraText,
+      normalFont(bodySize),
+      contentW
+    ):
+    [];
+
+  const visitorLines=
+    visitorText?
+    wrapText(
+      ctx,
+      "Visited By: "+visitorText,
+      normalFont(bodySize),
+      contentW
+    ):
+    [];
+
+  /* ---------------------------------------------------------
+     LOGO SIZE
+     --------------------------------------------------------- */
+  let logoW=0;
+  let logoH=0;
+
   if(logoImage){
-    const lx=panelX+panelW-pad-logoW;
-    const ly=panelY+panelH-bottomPad-logoH;
-    ctx.drawImage(logoImage,lx,ly,logoW,logoH);
+
+    const maxLogoW=
+      Math.min(
+        contentW*.22,
+        180
+      );
+
+    const maxLogoH=
+      Math.min(
+        H*.10,
+        110
+      );
+
+    const scale=
+      Math.min(
+        maxLogoW/logoImage.width,
+        maxLogoH/logoImage.height,
+        1
+      );
+
+    logoW=
+      logoImage.width*scale;
+
+    logoH=
+      logoImage.height*scale;
   }
 
-  canvas.toBlob(blob=>{
-    if(!blob){msg("Could not create JPG.");capture.disabled=false;return}
-    if(lastUrl)URL.revokeObjectURL(lastUrl);
-    lastUrl=URL.createObjectURL(blob);
+  /* ---------------------------------------------------------
+     DYNAMIC PANEL HEIGHT
+     --------------------------------------------------------- */
+  let panelH=
+    topPad+
 
-    const a=document.createElement("a");
-    const d=new Date();
-    const filename="GPS-PHOTO-"+d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")+"-"+String(d.getHours()).padStart(2,"0")+"-"+String(d.getMinutes()).padStart(2,"0")+"-"+String(d.getSeconds()).padStart(2,"0")+".jpg";
-    a.href=lastUrl;a.download=filename;
-    document.body.appendChild(a);a.click();a.remove();
+    textHeight(
+      addressLines,
+      addressSize,
+      gap,
+      blockGap
+    )+
 
-    msg("Photo captured and downloaded automatically.");
-    setTimeout(async()=>{
-      const ok=await startCamera();
-      capture.disabled=false;
-      if(ok){getGPS();msg("Ready for the next photo.")}
-    },500);
-  },"image/jpeg",.94);
+    textHeight(
+      plusCodeLines,
+      bodySize,
+      gap,
+      blockGap
+    )+
+
+    (
+      latLonSize+
+      gap+
+      blockGap
+    )+
+
+    (
+      dateTimeSize+
+      gap+
+      blockGap
+    )+
+
+    textHeight(
+      accuracyLines,
+      bodySize,
+      gap,
+      blockGap
+    )+
+
+    (
+      extraLines.length?
+      textHeight(
+        extraLines,
+        bodySize,
+        gap,
+        blockGap
+      ):
+      0
+    )+
+
+    (
+      visitorLines.length?
+      textHeight(
+        visitorLines,
+        bodySize,
+        gap,
+        blockGap
+      ):
+      0
+    );
+
+  if(logoImage){
+    panelH+=
+      logoH+
+      Math.round(blockGap*.5);
+  }
+
+  panelH+=bottomPad;
+
+  /*
+    Prevent the panel from exceeding the photograph.
+    Text itself remains readable as far as the physical canvas allows.
+  */
+  const maxPanelH=H-border*2-16;
+
+  if(panelH>maxPanelH){
+    panelH=maxPanelH;
+  }
+
+  const panelY=
+    Math.max(
+      border+8,
+      H-panelH-Math.max(18,H*.018)
+    );
+
+  /* ---------------------------------------------------------
+     INFORMATION BOX
+     --------------------------------------------------------- */
+  ctx.fillStyle=
+    "rgba(255,255,255,.50)";
+
+  roundedRect(
+    ctx,
+    panelX,
+    panelY,
+    panelW,
+    panelH,
+    20
+  );
+
+  ctx.fill();
+
+  ctx.lineWidth=
+    Math.max(
+      2,
+      Math.round(W*.002)
+    );
+
+  ctx.strokeStyle="#FBBC09";
+
+  ctx.stroke();
+
+  /* ---------------------------------------------------------
+     ALL TEXT CENTERED
+     --------------------------------------------------------- */
+  ctx.fillStyle="#000";
+  ctx.textAlign="center";
+  ctx.textBaseline="alphabetic";
+
+  const centerX=
+    panelX+
+    panelW/2;
+
+  let y=
+    panelY+
+    topPad;
+
+  function drawCenteredWrapped(
+    lines,
+    font,
+    size
+  ){
+
+    ctx.font=font;
+
+    for(const line of lines){
+
+      y+=size;
+
+      ctx.fillText(
+        line,
+        centerX,
+        y
+      );
+
+      y+=gap;
+    }
+
+    y+=blockGap-gap;
+  }
+
+  /* ADDRESS - CENTERED */
+  drawCenteredWrapped(
+    addressLines,
+    addressFont,
+    addressSize
+  );
+
+  /* PLUS CODE - CENTERED */
+  drawCenteredWrapped(
+    plusCodeLines,
+    normalFont(bodySize),
+    bodySize
+  );
+
+  /* LATITUDE + LONGITUDE - ONE PHYSICAL LINE */
+  ctx.font=latLonFont;
+
+  y+=latLonSize;
+
+  ctx.fillText(
+    latLonText,
+    centerX,
+    y
+  );
+
+  y+=
+    gap+
+    blockGap-
+    gap;
+
+  /* DAY + DATE + TIME + GMT - ONE PHYSICAL LINE */
+  ctx.font=dateTimeFont;
+
+  y+=dateTimeSize;
+
+  ctx.fillText(
+    dateTimeText,
+    centerX,
+    y
+  );
+
+  y+=
+    gap+
+    blockGap-
+    gap;
+
+  /* ACCURACY - CENTERED */
+  drawCenteredWrapped(
+    accuracyLines,
+    normalFont(bodySize),
+    bodySize
+  );
+
+  /* ADDITIONAL INFORMATION - CENTERED */
+  if(extraLines.length){
+
+    drawCenteredWrapped(
+      extraLines,
+      normalFont(bodySize),
+      bodySize
+    );
+  }
+
+  /* VISITED BY - CENTERED */
+  if(visitorLines.length){
+
+    drawCenteredWrapped(
+      visitorLines,
+      normalFont(bodySize),
+      bodySize
+    );
+  }
+
+  /* ---------------------------------------------------------
+     LOGO - BOTTOM RIGHT, INDEPENDENT OF TEXT ALIGNMENT
+     --------------------------------------------------------- */
+  if(logoImage){
+
+    const logoX=
+      panelX+
+      panelW-
+      pad-
+      logoW;
+
+    const logoY=
+      panelY+
+      panelH-
+      bottomPad-
+      logoH;
+
+    ctx.drawImage(
+      logoImage,
+      logoX,
+      logoY,
+      logoW,
+      logoH
+    );
+  }
+
+  /* ---------------------------------------------------------
+     JPG DOWNLOAD
+     --------------------------------------------------------- */
+  canvas.toBlob(
+    blob=>{
+
+      if(!blob){
+
+        setStatus(
+          "Could not create JPG."
+        );
+
+        capture.disabled=false;
+        return;
+      }
+
+      if(lastObjectUrl){
+        URL.revokeObjectURL(
+          lastObjectUrl
+        );
+      }
+
+      lastObjectUrl=
+        URL.createObjectURL(blob);
+
+      const a=
+        document.createElement("a");
+
+      const d=new Date();
+
+      const filename=
+        "GPS-PHOTO-"+
+        d.getFullYear()+"-"+
+        String(d.getMonth()+1).padStart(2,"0")+"-"+
+        String(d.getDate()).padStart(2,"0")+"-"+
+        String(d.getHours()).padStart(2,"0")+"-"+
+        String(d.getMinutes()).padStart(2,"0")+"-"+
+        String(d.getSeconds()).padStart(2,"0")+
+        ".jpg";
+
+      a.href=lastObjectUrl;
+      a.download=filename;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      setStatus(
+        "Photo captured and downloaded automatically."
+      );
+
+      /*
+        Restart camera for the next photograph.
+      */
+      setTimeout(
+        async()=>{
+          const ok=
+            await startCamera();
+
+          capture.disabled=false;
+
+          if(ok){
+            getGPS();
+            setStatus(
+              "Ready for the next photo."
+            );
+          }
+        },
+        500
+      );
+
+    },
+    "image/jpeg",
+    .94
+  );
 }
 
-ready.addEventListener("click",async()=>{
-  if(!secure()){httpsWarning.classList.remove("hidden");msg("Camera and GPS require HTTPS.");return}
-  ready.disabled=true;
-  const ok=await startCamera();
-  if(!ok){ready.disabled=false;return}
-  getGPS();
-  if(timer)clearInterval(timer);
-  timer=setInterval(()=>{if(stream)getGPS()},40000);
-  ready.textContent="READY ✓";
-});
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+ready.addEventListener(
+  "click",
+  async()=>{
 
-switchCamera.addEventListener("click",switchCam);
-zoomOut.addEventListener("click",()=>setZoom(zoom-.5));
-zoomIn.addEventListener("click",()=>setZoom(zoom+.5));
-capture.addEventListener("click",capturePhoto);
+    if(!isSecure()){
 
-window.addEventListener("beforeunload",()=>{
-  if(timer)clearInterval(timer);
-  stopCamera();
-  if(lastUrl)URL.revokeObjectURL(lastUrl);
-});
+      httpsWarning.classList.remove(
+        "hidden"
+      );
+
+      setStatus(
+        "Camera and GPS require HTTPS."
+      );
+
+      return;
+    }
+
+    ready.disabled=true;
+
+    const cameraStarted=
+      await startCamera();
+
+    if(!cameraStarted){
+
+      ready.disabled=false;
+      return;
+    }
+
+    getGPS();
+
+    if(gpsTimer){
+      clearInterval(gpsTimer);
+    }
+
+    gpsTimer=
+      setInterval(
+        ()=>{
+          if(stream){
+            getGPS();
+          }
+        },
+        40000
+      );
+
+    ready.textContent="READY ✓";
+  }
+);
+
+switchCamera.addEventListener(
+  "click",
+  switchCameraMode
+);
+
+zoomOut.addEventListener(
+  "click",
+  ()=>setZoom(zoom-.5)
+);
+
+zoomIn.addEventListener(
+  "click",
+  ()=>setZoom(zoom+.5)
+);
+
+capture.addEventListener(
+  "click",
+  capturePhoto
+);
+
+/* =========================================================
+   CLEANUP
+   ========================================================= */
+window.addEventListener(
+  "beforeunload",
+  ()=>{
+    if(gpsTimer){
+      clearInterval(gpsTimer);
+    }
+
+    stopCamera();
+
+    if(lastObjectUrl){
+      URL.revokeObjectURL(
+        lastObjectUrl
+      );
+    }
+  }
+);
 </script>
 </body>
 </html>
