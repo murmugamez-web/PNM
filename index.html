@@ -2,98 +2,93 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111827">
 <title>GPS PHOTO: GEO TAGGING by PM</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f3f4f6;color:#111827;font-family:Arial,sans-serif}
-header{background:#fff;border-bottom:1px solid #ddd;padding:14px 18px}
-header h1{margin:0;font-size:24px}
-main{max-width:1100px;margin:15px auto;padding:0 12px}
-.card{background:#fff;border-radius:18px;padding:14px;margin-bottom:15px;box-shadow:0 3px 14px rgba(0,0,0,.08)}
-.camera{position:relative;background:#111827;border-radius:15px;overflow:hidden;min-height:300px}
-#video,#preview{display:none;width:100%;height:auto;max-height:78vh;object-fit:contain}
-#preview{background:#A20404;border:3px solid #A20404}
-#placeholder{min-height:300px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#d1d5db;text-align:center;padding:30px}
-#placeholder .icon{font-size:58px}
-#liveOverlay{display:none;position:absolute;left:3%;right:3%;bottom:3%;background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:14px;color:#000;padding:12px;font-family:Georgia,serif;pointer-events:none;z-index:4}
-.liveTitle{text-align:center;font-size:clamp(18px,3vw,32px);font-weight:900;font-style:italic;margin-bottom:10px}
-.liveTop{display:block}
-.liveCell{min-width:0}
-.liveCell.right{display:none}
-.liveLine{font-weight:800;font-size:clamp(12px,1.8vw,19px);line-height:1.2;margin:3px 0;overflow-wrap:anywhere}
-.liveSecond{border-top:1.5px solid #FBBC09;margin-top:10px;padding-top:8px}
-.liveThird{border-top:1.5px solid #FBBC09;margin-top:8px;padding-top:7px}
-.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
-button{border:0;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:800;cursor:pointer;min-height:44px}
+body{margin:0;background:#f3f4f6;color:#111;font-family:Arial,sans-serif}
+header{background:#fff;padding:14px 16px;border-bottom:1px solid #ddd}
+header h1{margin:0;text-align:center;font-size:22px}
+main{max-width:1100px;margin:auto;padding:12px}
+.card{background:#fff;border-radius:16px;padding:12px;box-shadow:0 3px 14px rgba(0,0,0,.08)}
+.camera{position:relative;background:#111;border-radius:12px;overflow:hidden;min-height:280px}
+#video{display:none;width:100%;height:auto;max-height:80vh;object-fit:contain}
+#placeholder{min-height:280px;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#ddd;text-align:center}
+#placeholder .camicon{font-size:58px}
+#preview{display:none;width:100%;height:auto;border:3px solid #A20404}
+#liveBox{
+ display:none;position:absolute;left:3%;right:3%;bottom:3%;
+ background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:14px;
+ color:#000;padding:12px;font-family:Georgia,serif;pointer-events:none;
+}
+.liveTitle{text-align:center;font:bold italic clamp(20px,4vw,34px) Georgia,serif;margin-bottom:10px}
+.liveLine{font-weight:700;font-size:clamp(14px,2.4vw,24px);line-height:1.2;margin:4px 0;overflow-wrap:anywhere}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button{border:0;border-radius:9px;padding:12px 14px;min-height:44px;font-weight:800;font-size:15px;cursor:pointer}
 button:disabled{opacity:.45}
 #ready{background:#16a34a;color:white}
 #capture{background:#2563eb;color:white}
-.secondary{background:#e5e7eb;color:#111827}
-.zoom{background:#111827;color:white;font-size:20px;min-width:46px}
-.zoomLabel{font-weight:800}
-.hidden{display:none!important}
-label{display:block;font-weight:800;margin:13px 0 6px}
+.secondary{background:#e5e7eb;color:#111}
+.zoom{background:#111827;color:white;min-width:48px;font-size:20px}
+.zoomText{font-weight:800;align-self:center}
+label{display:block;font-weight:800;margin:14px 0 6px}
 input[type=text]{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px}
 input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius:9px;background:#f8fafc}
-.logoPreview{display:none;margin-top:8px;max-width:140px;max-height:70px;border:1px solid #ddd;border-radius:7px;object-fit:contain}
-.status{margin-top:11px;padding:10px;border-radius:9px;background:#f1f5f9;font-size:14px}
+#logoPreview{display:none;max-width:150px;max-height:80px;margin-top:8px;border:1px solid #ccc;border-radius:7px;object-fit:contain}
+.status{margin-top:10px;padding:10px;border-radius:8px;background:#f1f5f9;font-size:14px}
 .warning{background:#fff7ed;color:#9a3412}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
+
 <header><h1>GPS PHOTO: GEO TAGGING by PM</h1></header>
 
 <main>
-<section class="card">
-  <div class="camera">
-    <div id="placeholder">
-      <div class="icon">📷</div>
-      <h2>Geo Tag Photo</h2>
-      <p>Press READY to start camera and GPS.</p>
-    </div>
+<div class="card">
 
-    <video id="video" autoplay playsinline muted></video>
-    <img id="preview" alt="Captured GPS photo">
-
-    <div id="liveOverlay">
-      <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING by PM 🌐</div>
-
-      <div class="liveTop">
-        <div class="liveCell" id="liveTopLeft"></div>
-        <div class="liveCell right" id="liveTopRight"></div>
-      </div>
-
-      <div class="liveSecond" id="liveSecond"></div>
-      <div class="liveThird" id="liveThird"></div>
-    </div>
+<div class="camera">
+  <div id="placeholder">
+    <div class="camicon">📷</div>
+    <h2>GPS PHOTO: GEO TAGGING by PM</h2>
+    <p>Press READY to start the camera and GPS.</p>
   </div>
 
-  <div class="buttons">
-    <button id="ready">READY</button>
-    <button id="switchCamera" class="secondary hidden">🔄 SWITCH CAMERA</button>
-    <button id="zoomOut" class="zoom hidden">−</button>
-    <span id="zoomLabel" class="zoomLabel hidden">Zoom 1.0×</span>
-    <button id="zoomIn" class="zoom hidden">+</button>
-    <button id="capture" class="hidden">📸 CAPTURE PHOTO</button>
-    <button id="retake" class="secondary hidden">🔄 RETAKE</button>
-    <button id="download" class="secondary hidden">⬇ DOWNLOAD</button>
+  <video id="video" autoplay playsinline muted></video>
+  <img id="preview" alt="Captured GPS photo">
+
+  <div id="liveBox">
+    <div id="liveTitle" class="liveTitle">GPS PHOTO: GEO TAGGING by PM 🌐</div>
+    <div id="liveLines"></div>
   </div>
+</div>
 
-  <label for="additional">Additional Information</label>
-  <input id="additional" type="text" placeholder="Enter additional information">
+<div class="controls">
+  <button id="ready">READY</button>
+  <button id="switchCamera" class="secondary hidden">🔄 SWITCH CAMERA</button>
+  <button id="zoomOut" class="zoom hidden">−</button>
+  <span id="zoomText" class="zoomText hidden">Zoom 1.0×</span>
+  <button id="zoomIn" class="zoom hidden">+</button>
+  <button id="capture" class="hidden">📸 CAPTURE PHOTO</button>
+</div>
 
-  <label for="visitedBy">Visited By</label>
-  <input id="visitedBy" type="text" placeholder="Enter name">
+<label for="additional">Additional Information</label>
+<input id="additional" type="text" placeholder="Enter additional information">
 
-  <label for="logoInput">Company Logo</label>
-  <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
-  <img id="logoPreview" class="logoPreview" alt="Company logo preview">
+<label for="visitedBy">Visited By</label>
+<input id="visitedBy" type="text" placeholder="Enter name">
 
-  <div id="status" class="status">Press READY.</div>
-  <div id="security" class="status warning hidden"></div>
-</section>
+<label for="logoInput">Company Logo</label>
+<input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
+<img id="logoPreview" alt="Company logo preview">
+
+<div id="status" class="status">Press READY.</div>
+<div id="httpsWarning" class="status warning hidden">
+Camera and GPS require HTTPS. Publish this index.html on GitHub Pages, Netlify, or another HTTPS host.
+</div>
+
+</div>
 </main>
 
 <script>
@@ -101,725 +96,775 @@ input[type=file]{width:100%;padding:10px;border:1px dashed #94a3b8;border-radius
 
 const $=id=>document.getElementById(id);
 
-const video=$("video"),preview=$("preview"),placeholder=$("placeholder");
-const ready=$("ready"),switchCamera=$("switchCamera"),capture=$("capture");
-const retake=$("retake"),download=$("download");
-const zoomIn=$("zoomIn"),zoomOut=$("zoomOut"),zoomLabel=$("zoomLabel");
-const liveOverlay=$("liveOverlay"),liveTitle=$("liveTitle");
-const liveTopLeft=$("liveTopLeft"),liveTopRight=$("liveTopRight");
-const liveSecond=$("liveSecond"),liveThird=$("liveThird");
-const additional=$("additional"),visitedBy=$("visitedBy");
-const logoInput=$("logoInput"),logoPreview=$("logoPreview");
-const status=$("status"),security=$("security");
+const video=$("video");
+const preview=$("preview");
+const placeholder=$("placeholder");
+const liveBox=$("liveBox");
+const liveTitle=$("liveTitle");
+const liveLines=$("liveLines");
+const ready=$("ready");
+const switchCamera=$("switchCamera");
+const zoomIn=$("zoomIn");
+const zoomOut=$("zoomOut");
+const zoomText=$("zoomText");
+const capture=$("capture");
+const additional=$("additional");
+const visitedBy=$("visitedBy");
+const logoInput=$("logoInput");
+const logoPreview=$("logoPreview");
+const status=$("status");
 
-let stream=null,gpsTimer=null,imageUrl=null;
-let facingMode="environment",zoomLevel=1,nativeZoom=false,countryCode="";
+let stream=null;
+let gpsTimer=null;
+let facingMode="environment";
+let zoomLevel=1;
+let nativeZoom=false;
 let logoImage=null;
+let imageUrl=null;
 
-function msg(t){status.textContent=t}
-function secureOK(){return window.isSecureContext||location.hostname==="localhost"||location.hostname==="127.0.0.1"}
+let gps={
+  lat:null,
+  lon:null,
+  accuracy:null,
+  address:"—",
+  countryCode:"",
+  plusCode:"—"
+};
 
-if(!secureOK()){
- security.textContent="Camera and GPS require HTTPS. Publish this index.html on GitHub Pages, Netlify, or another HTTPS host.";
- security.classList.remove("hidden");
+function msg(text){status.textContent=text}
+
+function secureContextOK(){
+  return window.isSecureContext ||
+         location.hostname==="localhost" ||
+         location.hostname==="127.0.0.1";
 }
 
-function flag(code){
- code=String(code||"").toUpperCase();
- if(!/^[A-Z]{2}$/.test(code))return "🌐";
- return String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0)));
+if(!secureContextOK()){
+  $("httpsWarning").classList.remove("hidden");
 }
 
-function gmt(){
- const offset=-new Date().getTimezoneOffset();
- const sign=offset>=0?"+":"-";
- const a=Math.abs(offset);
- return "GMT"+sign+String(Math.floor(a/60)).padStart(2,"0")+":"+String(a%60).padStart(2,"0");
+function countryFlag(code){
+  code=String(code||"").toUpperCase();
+  if(!/^[A-Z]{2}$/.test(code)) return "🌐";
+  return String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0)));
+}
+
+function gmtOffset(){
+  const offset=-new Date().getTimezoneOffset();
+  const sign=offset>=0?"+":"-";
+  const abs=Math.abs(offset);
+  return "GMT"+sign+
+    String(Math.floor(abs/60)).padStart(2,"0")+":"+
+    String(abs%60).padStart(2,"0");
 }
 
 function esc(s){
- return String(s).replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- }[c]));
+  return String(s).replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
 }
 
 /* Open Location Code / Plus Code compatible encoder. */
-function plusCode(lat,lon){
- lat=Number(lat);lon=Number(lon);
- if(!Number.isFinite(lat)||!Number.isFinite(lon))return "—";
- lat=Math.max(-90,Math.min(90,lat));
- lon=((lon+180)%360+360)%360-180;
- if(lat===90)lat-=1e-12;
+function makePlusCode(lat,lon){
+  lat=Number(lat); lon=Number(lon);
+  if(!Number.isFinite(lat)||!Number.isFinite(lon)) return "—";
 
- const alphabet="23456789CFGHJMPQRVWX";
- const places=[20,1,.05,.0025,.000125];
- let la=lat+90,lo=lon+180,code="";
+  const alphabet="23456789CFGHJMPQRVWX";
 
- for(const p of places){
-   const a=Math.max(0,Math.min(19,Math.floor(la/p)));
-   const b=Math.max(0,Math.min(19,Math.floor(lo/p)));
-   code+=alphabet[a]+alphabet[b];
-   la-=a*p;
-   lo-=b*p;
- }
- return code.slice(0,8)+"+"+code.slice(8);
+  lat=Math.max(-90,Math.min(90,lat));
+  lon=((lon+180)%360+360)%360-180;
+
+  if(lat===90)lat-=1e-12;
+
+  let latVal=lat+90;
+  let lonVal=lon+180;
+  const placeValues=[20,1,.05,.0025,.000125];
+  let code="";
+
+  for(const p of placeValues){
+    const li=Math.max(0,Math.min(19,Math.floor(latVal/p)));
+    const lo=Math.max(0,Math.min(19,Math.floor(lonVal/p)));
+    code+=alphabet[li]+alphabet[lo];
+    latVal-=li*p;
+    lonVal-=lo*p;
+  }
+
+  return code.slice(0,8)+"+"+code.slice(8);
 }
 
 function updateLive(){
- const n=new Date();
- liveTitle.textContent="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
+  liveTitle.textContent="GPS PHOTO: GEO TAGGING by PM "+countryFlag(gps.countryCode);
 
- const liveLines=[
-   window.lastPlus||"—",
-   window.lastAddress||"—",
-   "LATITUDE: "+(window.lastLat||"—"),
-   "LONGITUDE: "+(window.lastLon||"—"),
-   n.toLocaleDateString(undefined,{weekday:"long"})+
-     " | DATE: "+n.toLocaleDateString("en-GB")+
-     " | TIME: "+n.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true})+
-     " | "+gmt(),
-   "ACCURACY: "+(window.lastAccuracy||"—")
- ];
+  const now=new Date();
+  const lines=[
+    gps.plusCode,
+    gps.address,
+    "LATITUDE: "+(gps.lat!==null?gps.lat.toFixed(6):"—"),
+    "LONGITUDE: "+(gps.lon!==null?gps.lon.toFixed(6):"—"),
+    now.toLocaleDateString(undefined,{weekday:"long"})+
+      " | DATE: "+now.toLocaleDateString("en-GB")+
+      " | TIME: "+now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true})+
+      " | "+gmtOffset(),
+    "ACCURACY: "+(gps.accuracy!==null?Math.round(gps.accuracy)+" m":"—")
+  ];
 
- if(additional.value.trim())liveLines.push(additional.value.trim());
- if(visitedBy.value.trim())liveLines.push("Visited By: "+visitedBy.value.trim());
+  const extra=additional.value.trim();
+  const visitor=visitedBy.value.trim();
 
- liveTopLeft.innerHTML=liveLines.map(x=>'<div class="liveLine">'+esc(x)+'</div>').join("");
- liveTopRight.innerHTML="";
- liveSecond.innerHTML="";
- liveThird.innerHTML="";
+  if(extra)lines.push(extra);
+  if(visitor)lines.push("Visited By: "+visitor);
 
- liveOverlay.style.display=stream?"block":"none";
-}
-
-async function startCamera(){
- try{
-   if(stream)stopCamera();
-
-   stream=await navigator.mediaDevices.getUserMedia({
-     video:{
-       facingMode:{ideal:facingMode},
-       width:{ideal:1920},
-       height:{ideal:1080}
-     },
-     audio:false
-   });
-
-   video.srcObject=stream;
-   await video.play();
-
-   video.style.display="block";
-   preview.style.display="none";
-   placeholder.style.display="none";
-
-   switchCamera.classList.remove("hidden");
-   capture.classList.remove("hidden");
-   zoomIn.classList.remove("hidden");
-   zoomOut.classList.remove("hidden");
-   zoomLabel.classList.remove("hidden");
-
-   retake.classList.add("hidden");
-   download.classList.add("hidden");
-
-   zoomLevel=1;
-   video.style.transform="scale(1)";
-   detectZoom();
-   updateLive();
-
-   msg("Camera started. GPS updates every 40 seconds.");
-   return true;
- }catch(e){
-   console.error(e);
-   msg(e.name==="NotAllowedError"
-      ?"Camera permission denied. Allow camera access in browser settings."
-      :"Camera error: "+(e.message||e.name));
-   return false;
- }
+  liveLines.innerHTML=lines.map(x=>'<div class="liveLine">'+esc(x)+'</div>').join("");
+  liveBox.style.display=stream?"block":"none";
 }
 
 function stopCamera(){
- if(stream)stream.getTracks().forEach(t=>t.stop());
- stream=null;
- video.srcObject=null;
- liveOverlay.style.display="none";
+  if(stream)stream.getTracks().forEach(t=>t.stop());
+  stream=null;
+  video.srcObject=null;
+  liveBox.style.display="none";
+}
+
+async function startCamera(){
+  try{
+    if(stream)stopCamera();
+
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:{ideal:facingMode},
+        width:{ideal:1920},
+        height:{ideal:1080}
+      },
+      audio:false
+    });
+
+    video.srcObject=stream;
+    await video.play();
+
+    video.style.display="block";
+    preview.style.display="none";
+    placeholder.style.display="none";
+
+    switchCamera.classList.remove("hidden");
+    zoomIn.classList.remove("hidden");
+    zoomOut.classList.remove("hidden");
+    zoomText.classList.remove("hidden");
+    capture.classList.remove("hidden");
+
+    zoomLevel=1;
+    video.style.transform="scale(1)";
+    detectZoom();
+    updateLive();
+
+    msg("Camera started. GPS refreshes every 40 seconds.");
+    return true;
+
+  }catch(e){
+    console.error(e);
+    if(e.name==="NotAllowedError"){
+      msg("Camera permission denied. Allow camera access in browser settings.");
+    }else{
+      msg("Camera error: "+(e.message||e.name));
+    }
+    return false;
+  }
 }
 
 function detectZoom(){
- try{
-   const caps=stream?.getVideoTracks?.()[0]?.getCapabilities?.()||{};
-   nativeZoom=!!caps.zoom;
- }catch(e){nativeZoom=false}
- updateZoom();
+  try{
+    const caps=stream?.getVideoTracks()[0]?.getCapabilities?.()||{};
+    nativeZoom=!!caps.zoom;
+  }catch(e){
+    nativeZoom=false;
+  }
+  updateZoom();
 }
 
 function updateZoom(){
- zoomLabel.textContent="Zoom "+zoomLevel.toFixed(1)+"×";
- zoomOut.disabled=zoomLevel<=1;
- zoomIn.disabled=zoomLevel>=3;
+  zoomText.textContent="Zoom "+zoomLevel.toFixed(1)+"×";
+  zoomOut.disabled=zoomLevel<=1;
+  zoomIn.disabled=zoomLevel>=10;
 }
 
-async function setZoom(z){
- z=Math.max(1,Math.min(3,z));
- const track=stream?.getVideoTracks?.()[0];
- if(!track)return;
+async function setZoom(value){
+  value=Math.max(1,Math.min(10,value));
 
- try{
-   const caps=track.getCapabilities?.()||{};
-   if(caps.zoom){
-     const min=Number(caps.zoom.min??1);
-     const max=Number(caps.zoom.max??3);
-     const step=Number(caps.zoom.step??.1);
-     z=Math.min(max,Math.max(min,Math.round(z/step)*step));
-     await track.applyConstraints({advanced:[{zoom:z}]});
-     nativeZoom=true;
-     video.style.transform="scale(1)";
-   }else{
-     nativeZoom=false;
-     video.style.transform="scale("+z+")";
-   }
- }catch(e){
-   nativeZoom=false;
-   video.style.transform="scale("+z+")";
- }
+  const track=stream?.getVideoTracks?.()[0];
 
- zoomLevel=z;
- updateZoom();
+  if(track){
+    try{
+      const caps=track.getCapabilities?.()||{};
+
+      if(caps.zoom){
+        const min=Number(caps.zoom.min??1);
+        const max=Math.min(10,Number(caps.zoom.max??10));
+        const step=Number(caps.zoom.step??.1);
+
+        value=Math.min(max,Math.max(min,Math.round(value/step)*step));
+
+        await track.applyConstraints({
+          advanced:[{zoom:value}]
+        });
+
+        nativeZoom=true;
+        video.style.transform="scale(1)";
+      }else{
+        nativeZoom=false;
+        video.style.transform="scale("+value+")";
+      }
+    }catch(e){
+      nativeZoom=false;
+      video.style.transform="scale("+value+")";
+    }
+  }
+
+  zoomLevel=value;
+  updateZoom();
 }
 
-async function switchCam(){
- facingMode=facingMode==="environment"?"user":"environment";
- const ok=await startCamera();
- if(ok){
-   getGPS();
-   msg(facingMode==="environment"?"Rear camera selected.":"Front camera selected.");
- }
+async function switchCameraMode(){
+  facingMode=facingMode==="environment"?"user":"environment";
+  const ok=await startCamera();
+
+  if(ok){
+    getGPS();
+    msg(facingMode==="environment"?
+      "Rear camera selected.":
+      "Front camera selected.");
+  }
 }
-
-let lastAddress="—";
-let lastPlus="—";
-let lastLat="—";
-let lastLon="—";
-let lastAccuracy="—";
-
-window.lastAddress=lastAddress;
-window.lastPlus=lastPlus;
-window.lastLat=lastLat;
-window.lastLon=lastLon;
-window.lastAccuracy=lastAccuracy;
 
 async function reverseGeocode(lat,lon){
- try{
-   const url="https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat="+
-     encodeURIComponent(lat)+"&lon="+encodeURIComponent(lon)+
-     "&zoom=18&addressdetails=1";
+  try{
+    const url=
+      "https://nominatim.openstreetmap.org/reverse"+
+      "?format=jsonv2"+
+      "&addressdetails=1"+
+      "&zoom=18"+
+      "&lat="+encodeURIComponent(lat)+
+      "&lon="+encodeURIComponent(lon);
 
-   const response=await fetch(url,{headers:{Accept:"application/json"}});
-   if(!response.ok)throw new Error("HTTP "+response.status);
+    const response=await fetch(url,{
+      headers:{Accept:"application/json"}
+    });
 
-   const data=await response.json();
-   const a=data.address||{};
+    if(!response.ok)throw new Error("HTTP "+response.status);
 
-   lastAddress=data.display_name||
-     [a.road,a.suburb,a.city,a.state,a.postcode,a.country]
-     .filter(Boolean).join(", ")||"—";
+    const data=await response.json();
+    const a=data.address||{};
 
-   countryCode=(a.country_code||"").toUpperCase();
-   window.lastAddress=lastAddress;
- }catch(e){
-   console.warn(e);
-   msg("GPS works, but address lookup is temporarily unavailable.");
- }
+    gps.address=data.display_name||
+      [a.road,a.suburb,a.city,a.state,a.postcode,a.country]
+      .filter(Boolean).join(", ")||"—";
 
- updateLive();
+    gps.countryCode=(a.country_code||"").toUpperCase();
+
+    updateLive();
+
+  }catch(e){
+    console.warn("Reverse geocoding failed:",e);
+    msg("GPS is working, but address lookup is temporarily unavailable.");
+  }
 }
 
 function getGPS(){
- if(!navigator.geolocation){
-   msg("GPS is not supported by this browser.");
-   return;
- }
+  if(!navigator.geolocation){
+    msg("GPS is not supported by this browser.");
+    return;
+  }
 
- navigator.geolocation.getCurrentPosition(async position=>{
-   const c=position.coords;
-   lastLat=c.latitude.toFixed(6);
-   lastLon=c.longitude.toFixed(6);
-   lastAccuracy=Math.round(c.accuracy)+" m";
-   lastPlus=plusCode(c.latitude,c.longitude);
+  navigator.geolocation.getCurrentPosition(async position=>{
+    const c=position.coords;
 
-   window.lastLat=lastLat;
-   window.lastLon=lastLon;
-   window.lastAccuracy=lastAccuracy;
-   window.lastPlus=lastPlus;
+    gps.lat=c.latitude;
+    gps.lon=c.longitude;
+    gps.accuracy=c.accuracy;
+    gps.plusCode=makePlusCode(c.latitude,c.longitude);
 
-   updateLive();
-   await reverseGeocode(c.latitude,c.longitude);
-   msg("GPS updated: "+new Date().toLocaleTimeString());
- },error=>{
-   if(error.code===1)msg("Location permission denied. Allow Location access in browser settings.");
-   else if(error.code===2)msg("Location unavailable. Trying again...");
-   else if(error.code===3)msg("GPS timed out. Trying again...");
-   else msg("Unable to get GPS location.");
-   updateLive();
- },{
-   enableHighAccuracy:true,
-   timeout:20000,
-   maximumAge:0
- });
+    updateLive();
+
+    await reverseGeocode(c.latitude,c.longitude);
+
+    msg("GPS updated: "+new Date().toLocaleTimeString());
+
+  },error=>{
+    if(error.code===1){
+      msg("Location permission denied. Allow Location access in browser settings.");
+    }else if(error.code===2){
+      msg("Location unavailable. Trying again...");
+    }else if(error.code===3){
+      msg("GPS timed out. Trying again...");
+    }else{
+      msg("Unable to get GPS location.");
+    }
+
+    updateLive();
+
+  },{
+    enableHighAccuracy:true,
+    timeout:20000,
+    maximumAge:0
+  });
 }
 
 function loadLogo(file){
- if(!file){logoImage=null;logoPreview.style.display="none";return}
- const reader=new FileReader();
+  if(!file)return;
 
- reader.onload=e=>{
-   const img=new Image();
-   img.onload=()=>{
-     logoImage=img;
-     logoPreview.src=e.target.result;
-     logoPreview.style.display="block";
-     msg("Company logo loaded.");
-     updateLive();
-   };
-   img.src=e.target.result;
- };
- reader.readAsDataURL(file);
+  const reader=new FileReader();
+
+  reader.onload=e=>{
+    const img=new Image();
+
+    img.onload=()=>{
+      logoImage=img;
+      logoPreview.src=e.target.result;
+      logoPreview.style.display="block";
+      msg("Company logo loaded.");
+      updateLive();
+    };
+
+    img.src=e.target.result;
+  };
+
+  reader.readAsDataURL(file);
 }
 
-function wrap(ctx,text,font,maxWidth){
- ctx.font=font;
- const words=String(text).split(/\s+/);
- const lines=[];
- let line="";
+/* Wrap text using actual canvas measurements. */
+function wrapText(ctx,text,font,maxWidth){
+  ctx.font=font;
 
- for(const word of words){
-   const test=line?line+" "+word:word;
+  const words=String(text).split(/\s+/);
+  const lines=[];
+  let line="";
 
-   if(ctx.measureText(test).width<=maxWidth){
-     line=test;
-   }else{
-     if(line)lines.push(line);
+  for(const word of words){
+    const test=line?line+" "+word:word;
 
-     if(ctx.measureText(word).width>maxWidth){
-       let part="";
-       for(const ch of word){
-         const testPart=part+ch;
-         if(ctx.measureText(testPart).width<=maxWidth)part=testPart;
-         else{
-           if(part)lines.push(part);
-           part=ch;
-         }
-       }
-       line=part;
-     }else{
-       line=word;
-     }
-   }
- }
+    if(ctx.measureText(test).width<=maxWidth){
+      line=test;
+    }else{
+      if(line)lines.push(line);
 
- if(line)lines.push(line);
- return lines;
+      if(ctx.measureText(word).width>maxWidth){
+        let part="";
+
+        for(const ch of word){
+          const candidate=part+ch;
+
+          if(ctx.measureText(candidate).width<=maxWidth){
+            part=candidate;
+          }else{
+            if(part)lines.push(part);
+            part=ch;
+          }
+        }
+
+        line=part;
+      }else{
+        line=word;
+      }
+    }
+  }
+
+  if(line)lines.push(line);
+
+  return lines;
 }
 
 function capturePhoto(){
- if(!stream || !video.videoWidth){
-   msg("Camera is not ready. Press READY first.");
-   return;
- }
+  if(!stream||!video.videoWidth){
+    msg("Camera is not ready. Press READY first.");
+    return;
+  }
 
- const canvas=document.createElement("canvas");
- const border=Math.max(10,Math.round(video.videoWidth*.008));
- canvas.width=video.videoWidth+border*2;
- canvas.height=video.videoHeight+border*2;
- const ctx=canvas.getContext("2d");
+  const canvas=document.createElement("canvas");
+  const border=Math.max(8,Math.round(video.videoWidth*.008));
 
- const now=new Date();
- const address=window.lastAddress||"—";
- const plus=window.lastPlus||"—";
- const lat=window.lastLat||"—";
- const lon=window.lastLon||"—";
- const accuracy=window.lastAccuracy||"—";
+  canvas.width=video.videoWidth+border*2;
+  canvas.height=video.videoHeight+border*2;
 
- const day=now.toLocaleDateString(undefined,{weekday:"long"});
- const date=now.toLocaleDateString("en-GB");
- const time=now.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true});
- const zone=gmt();
+  const ctx=canvas.getContext("2d");
 
- const extra=additional.value.trim();
- const visitor=visitedBy.value.trim();
+  const now=new Date();
+  const address=gps.address||"—";
+  const plus=gps.plusCode||"—";
+  const lat=gps.lat!==null?gps.lat.toFixed(6):"—";
+  const lon=gps.lon!==null?gps.lon.toFixed(6):"—";
+  const accuracy=gps.accuracy!==null?Math.round(gps.accuracy)+" m":"—";
 
- const landscape=canvas.width>=canvas.height;
+  const day=now.toLocaleDateString(undefined,{weekday:"long"});
+  const date=now.toLocaleDateString("en-GB");
+  const time=now.toLocaleTimeString([],{
+    hour:"numeric",
+    minute:"2-digit",
+    hour12:true
+  });
+  const zone=gmtOffset();
 
- /*
-   UNIFIED INFORMATION BOX
-   ------------------------
-   All GPS/photo information is now in ONE continuous section.
-   There are NO vertical columns and NO section dividers.
+  const extra=additional.value.trim();
+  const visitor=visitedBy.value.trim();
 
-   Order:
-   Title + flag
-   Plus Code
-   Address
-   Latitude
-   Longitude
-   Day | Date | Time | GMT
-   Accuracy
-   Additional text
-   Visited By
-   Company logo at bottom-right
- */
+  const landscape=canvas.width>=canvas.height;
 
- const panelW=landscape?canvas.width*.90:canvas.width*.88;
- const panelX=(canvas.width-panelW)/2;
- const pad=Math.max(24,canvas.width*.025);
- const contentW=panelW-pad*2;
+  const panelW=landscape?canvas.width*.90:canvas.width*.88;
+  const panelX=(canvas.width-panelW)/2;
 
- let titleSize=landscape
-   ?Math.max(42,Math.min(58,canvas.width*.036))
-   :Math.max(38,Math.min(52,canvas.width*.043));
+  const pad=Math.max(24,canvas.width*.025);
+  const contentW=panelW-pad*2;
 
- let bodySize=landscape
-   ?Math.max(23,Math.min(36,canvas.width*.023))
-   :Math.max(20,Math.min(32,canvas.width*.028));
+  let titleSize=landscape?
+    Math.max(42,Math.min(58,canvas.width*.036)):
+    Math.max(38,Math.min(52,canvas.width*.043));
 
- const addressSize=32; // 24pt
- const lineGap=Math.max(8,bodySize*.22);
- const titleGap=Math.max(22,bodySize*.65);
- const itemGap=Math.max(7,bodySize*.20);
- const bottomPad=Math.max(26,bodySize*.65);
- const topPad=Math.max(26,bodySize*.70);
+  let bodySize=landscape?
+    Math.max(23,Math.min(36,canvas.width*.023)):
+    Math.max(20,Math.min(32,canvas.width*.028));
 
- const bodyFont=()=>`bold ${bodySize}px Georgia,serif`;
- const addressFont=()=>`bold ${addressSize}px Georgia,serif`;
+  const addressSize=32; // 24pt
+  const lineGap=Math.max(8,bodySize*.22);
+  const titleGap=Math.max(22,bodySize*.65);
+  const blockGap=Math.max(9,bodySize*.22);
+  const topPad=Math.max(26,bodySize*.70);
+  const bottomPad=Math.max(30,bodySize*.75);
 
- function wrap(text,font,maxWidth){
-   ctx.font=font;
-   const words=String(text).split(/\s+/);
-   const lines=[];
-   let line="";
+  function font(size){
+    return "bold "+size+"px Georgia,serif";
+  }
 
-   for(const word of words){
-     const test=line?line+" "+word:word;
+  function wrap(text,fontName,maxWidth){
+    return wrapText(ctx,text,fontName,maxWidth);
+  }
 
-     if(ctx.measureText(test).width<=maxWidth){
-       line=test;
-     }else{
-       if(line)lines.push(line);
+  const title="GPS PHOTO: GEO TAGGING by PM "+countryFlag(gps.countryCode);
 
-       if(ctx.measureText(word).width>maxWidth){
-         let part="";
-         for(const ch of word){
-           const candidate=part+ch;
-           if(ctx.measureText(candidate).width<=maxWidth){
-             part=candidate;
-           }else{
-             if(part)lines.push(part);
-             part=ch;
-           }
-         }
-         line=part;
-       }else{
-         line=word;
-       }
-     }
-   }
+  while(titleSize>30){
+    ctx.font="bold italic "+titleSize+"px Georgia,serif";
+    if(ctx.measureText(title).width<=contentW)break;
+    titleSize--;
+  }
 
-   if(line)lines.push(line);
-   return lines;
- }
+  /*
+    ONE unified information flow.
+    There are no columns and no vertical divider.
+  */
+  function buildBlocks(size){
+    const bodyFont=font(size);
+    const addressFont=font(addressSize);
 
- function fitTitle(){
-   let size=titleSize;
-   const title="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
+    const blocks=[
+      {
+        lines:wrap(plus,bodyFont,contentW),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      },
+      {
+        lines:wrap(address,addressFont,contentW),
+        size:addressSize,
+        gap:blockGap+4,
+        font:addressFont
+      },
+      {
+        lines:wrap("LATITUDE: "+lat,bodyFont,contentW),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      },
+      {
+        lines:wrap("LONGITUDE: "+lon,bodyFont,contentW),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      },
+      {
+        lines:wrap(
+          day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
+          bodyFont,
+          contentW
+        ),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      },
+      {
+        lines:wrap("ACCURACY: "+accuracy,bodyFont,contentW),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      }
+    ];
 
-   while(size>30){
-     ctx.font=`bold italic ${size}px Georgia,serif`;
-     if(ctx.measureText(title).width<=contentW)break;
-     size--;
-   }
+    if(extra){
+      blocks.push({
+        lines:wrap(extra,bodyFont,contentW),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      });
+    }
 
-   return size;
- }
+    if(visitor){
+      blocks.push({
+        lines:wrap("Visited By: "+visitor,bodyFont,contentW),
+        size:size,
+        gap:blockGap,
+        font:bodyFont
+      });
+    }
 
- const finalTitleSize=fitTitle();
- const title="GPS PHOTO: GEO TAGGING by PM "+flag(countryCode);
+    return blocks;
+  }
 
- /*
-   Build every line first.
-   This is the important overlap fix:
-   the information-box height is based on the exact number
-   of wrapped lines before anything is drawn.
- */
- let blocks=[];
+  let blocks=buildBlocks(bodySize);
 
- function addBlock(text,font,size=bodySize,spaceAfter=itemGap){
-   const lines=wrap(text,font,contentW);
-   blocks.push({lines,font,size,spaceAfter});
- }
+  function blocksHeight(list){
+    return list.reduce((sum,b)=>
+      sum+b.lines.length*(b.size+lineGap)+b.gap,0
+    );
+  }
 
- // All data in ONE unified vertical section.
- addBlock(plus,bodyFont());
- addBlock(address,addressFont(),addressSize,itemGap+4);
- addBlock("LATITUDE: "+lat,bodyFont());
- addBlock("LONGITUDE: "+lon,bodyFont());
- addBlock(
-   day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
-   bodyFont()
- );
- addBlock("ACCURACY: "+accuracy,bodyFont());
+  let contentHeight=blocksHeight(blocks);
 
- if(extra){
-   addBlock(extra,bodyFont(),bodySize,itemGap+2);
- }
+  const logoNeeded=!!logoImage;
+  const logoSpace=logoNeeded?
+    Math.max(90,Math.min(130,canvas.height*.12)):
+    0;
 
- if(visitor){
-   addBlock("Visited By: "+visitor,bodyFont(),bodySize,itemGap+2);
- }
+  let panelH=
+    topPad+
+    titleSize+
+    titleGap+
+    contentHeight+
+    logoSpace+
+    bottomPad;
 
- function blockHeight(block){
-   return block.lines.length*(block.size+lineGap)+block.spaceAfter;
- }
+  /*
+    If necessary, reduce normal text size.
+    Address is kept at 24pt unless the image is too small.
+  */
+  const maxPanelH=landscape?canvas.height*.58:canvas.height*.80;
 
- let contentHeight=blocks.reduce((sum,b)=>sum+blockHeight(b),0);
+  while(panelH>maxPanelH&&bodySize>16){
+    bodySize--;
+    blocks=buildBlocks(bodySize);
+    contentHeight=blocksHeight(blocks);
 
- let panelH=topPad+
-   finalTitleSize+
-   titleGap+
-   contentHeight+
-   bottomPad;
+    panelH=
+      topPad+
+      titleSize+
+      titleGap+
+      contentHeight+
+      logoSpace+
+      bottomPad;
+  }
 
- /*
-   If the information does not fit comfortably, reduce normal text.
-   Address remains targeted at 24pt unless the photograph is unusually small.
- */
- const maxPanelH=landscape?canvas.height*.55:canvas.height*.76;
+  const panelY=canvas.height-panelH-24;
 
- while(panelH>maxPanelH && bodySize>16){
-   bodySize--;
-   blocks=[];
+  /* Draw the actual camera frame. */
+  if(nativeZoom||zoomLevel<=1){
+    ctx.drawImage(
+      video,
+      border,
+      border,
+      video.videoWidth,
+      video.videoHeight
+    );
+  }else{
+    const z=zoomLevel;
+    const sw=video.videoWidth/z;
+    const sh=video.videoHeight/z;
 
-   const bf=bodyFont();
-   addBlock(plus,bf);
-   addBlock(address,addressFont(),addressSize,itemGap+4);
-   addBlock("LATITUDE: "+lat,bf);
-   addBlock("LONGITUDE: "+lon,bf);
-   addBlock(
-     day+" | DATE: "+date+" | TIME: "+time+" | "+zone,
-     bf
-   );
-   addBlock("ACCURACY: "+accuracy,bf);
+    ctx.drawImage(
+      video,
+      (video.videoWidth-sw)/2,
+      (video.videoHeight-sh)/2,
+      sw,
+      sh,
+      border,
+      border,
+      video.videoWidth,
+      video.videoHeight
+    );
+  }
 
-   if(extra)addBlock(extra,bf,bodySize,itemGap+2);
-   if(visitor)addBlock("Visited By: "+visitor,bf,bodySize,itemGap+2);
+  /* Deep-maroon photo border. */
+  ctx.lineWidth=border;
+  ctx.strokeStyle="#A20404";
+  ctx.strokeRect(
+    border/2,
+    border/2,
+    video.videoWidth+border,
+    video.videoHeight+border
+  );
 
-   contentHeight=blocks.reduce((sum,b)=>sum+blockHeight(b),0);
-   panelH=topPad+finalTitleSize+titleGap+contentHeight+bottomPad;
- }
+  /* Unified information box. */
+  ctx.fillStyle="rgba(255,255,255,.50)";
+  ctx.beginPath();
+  ctx.roundRect(panelX,panelY,panelW,panelH,20);
+  ctx.fill();
 
- const panelY=canvas.height-panelH-24;
+  ctx.lineWidth=3;
+  ctx.strokeStyle="#FBBC09";
+  ctx.stroke();
 
- // Draw camera frame.
- if(nativeZoom || zoomLevel<=1){
-   ctx.drawImage(
-     video,
-     border,
-     border,
-     video.videoWidth,
-     video.videoHeight
-   );
- }else{
-   const z=zoomLevel;
-   const sw=video.videoWidth/z;
-   const sh=video.videoHeight/z;
+  /* Title. */
+  ctx.fillStyle="#000";
+  ctx.textAlign="center";
+  ctx.font="bold italic "+titleSize+"px Georgia,serif";
+  ctx.fillText(
+    title,
+    panelX+panelW/2,
+    panelY+topPad+titleSize
+  );
 
-   ctx.drawImage(
-     video,
-     (video.videoWidth-sw)/2,
-     (video.videoHeight-sh)/2,
-     sw,
-     sh,
-     border,
-     border,
-     video.videoWidth,
-     video.videoHeight
-   );
- }
+  /* ALL INFORMATION - one continuous section. */
+  ctx.textAlign="left";
 
- // Deep-maroon photo border.
- ctx.lineWidth=border;
- ctx.strokeStyle="#A20404";
- ctx.strokeRect(
-   border/2,
-   border/2,
-   video.videoWidth+border,
-   video.videoHeight+border
- );
+  let y=panelY+topPad+titleSize+titleGap;
 
- // Unified information box.
- ctx.fillStyle="rgba(255,255,255,.50)";
- ctx.beginPath();
- ctx.roundRect(panelX,panelY,panelW,panelH,20);
- ctx.fill();
+  for(const block of blocks){
+    ctx.font=block.font;
 
- ctx.lineWidth=3;
- ctx.strokeStyle="#FBBC09";
- ctx.stroke();
+    for(const line of block.lines){
+      ctx.fillText(line,panelX+pad,y);
+      y+=block.size+lineGap;
+    }
 
- // Title.
- ctx.fillStyle="#000000";
- ctx.textAlign="center";
- ctx.font=`bold italic ${finalTitleSize}px Georgia,serif`;
- ctx.fillText(
-   title,
-   panelX+panelW/2,
-   panelY+topPad+finalTitleSize
- );
+    y+=block.gap;
+  }
 
- // All information starts below title.
- ctx.textAlign="left";
+  /*
+    Company logo:
+    bottom-right inside the same information box.
+  */
+  if(logoImage){
+    const maxLogoW=Math.min(panelW*.20,180);
+    const maxLogoH=Math.min(logoSpace*.80,100);
 
- let y=panelY+topPad+finalTitleSize+titleGap;
+    const scale=Math.min(
+      maxLogoW/logoImage.width,
+      maxLogoH/logoImage.height,
+      1
+    );
 
- for(const block of blocks){
-   ctx.font=block.font;
+    const lw=logoImage.width*scale;
+    const lh=logoImage.height*scale;
 
-   for(const line of block.lines){
-     ctx.fillText(line,panelX+pad,y);
-     y+=block.size+lineGap;
-   }
+    const lx=panelX+panelW-pad-lw;
+    const ly=panelY+panelH-bottomPad-lh;
 
-   y+=block.spaceAfter;
- }
+    ctx.drawImage(logoImage,lx,ly,lw,lh);
+  }
 
- /*
-   Company logo:
-   fixed to bottom-right inside the unified information box.
-   It does not participate in the text flow, so it cannot overlap text
-   because the box has dedicated bottom padding.
- */
- if(logoImage){
-   const maxLogoW=Math.min(panelW*.18,180);
-   const maxLogoH=Math.min(panelH*.14,100);
+  ctx.textAlign="left";
 
-   const scale=Math.min(
-     maxLogoW/logoImage.width,
-     maxLogoH/logoImage.height,
-     1
-   );
+  canvas.toBlob(blob=>{
+    if(!blob){
+      msg("Could not create the JPG.");
+      return;
+    }
 
-   const lw=logoImage.width*scale;
-   const lh=logoImage.height*scale;
+    if(imageUrl)URL.revokeObjectURL(imageUrl);
+    imageUrl=URL.createObjectURL(blob);
 
-   const lx=panelX+panelW-pad-lw;
-   const ly=panelY+panelH-bottomPad-lh;
+    preview.src=imageUrl;
+    preview.style.display="block";
+    video.style.display="none";
 
-   ctx.drawImage(logoImage,lx,ly,lw,lh);
- }
+    stopCamera();
 
- ctx.textAlign="left";
+    capture.classList.add("hidden");
+    switchCamera.classList.add("hidden");
+    zoomIn.classList.add("hidden");
+    zoomOut.classList.add("hidden");
+    zoomText.classList.add("hidden");
 
- canvas.toBlob(blob=>{
-   if(!blob){
-     msg("Could not create the JPG.");
-     return;
-   }
+    msg("Photo captured. Downloading automatically.");
 
-   if(imageUrl)URL.revokeObjectURL(imageUrl);
-   imageUrl=URL.createObjectURL(blob);
+    const filename=
+      "GPS-PHOTO-PM-"+now.toISOString().slice(0,10)+"-"+
+      now.toTimeString().slice(0,8).replace(/:/g,"-")+
+      ".jpg";
 
-   preview.src=imageUrl;
-   preview.style.display="block";
-   video.style.display="none";
+    const a=document.createElement("a");
+    a.href=imageUrl;
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-   stopCamera();
+    /*
+      No RETAKE or DOWNLOAD buttons.
+      Automatically prepare for the next capture.
+    */
+    setTimeout(async()=>{
+      const ok=await startCamera();
 
-   capture.classList.add("hidden");
-   switchCamera.classList.add("hidden");
-   zoomIn.classList.add("hidden");
-   zoomOut.classList.add("hidden");
-   zoomLabel.classList.add("hidden");
+      if(ok){
+        getGPS();
+        msg("Ready for the next photo.");
+      }
+    },500);
 
-   retake.classList.remove("hidden");
-   download.classList.remove("hidden");
-
-   msg("Photo captured. Downloading automatically.");
-
-   const a=document.createElement("a");
-   a.href=imageUrl;
-   a.download=
-     "GPS-PHOTO-PM-"+now.toISOString().slice(0,10)+"-"+
-     now.toTimeString().slice(0,8).replace(/:/g,"-")+".jpg";
-
-   document.body.appendChild(a);
-   a.click();
-   a.remove();
- },"image/jpeg",.94);
+  },"image/jpeg",.94);
 }
+
+/* READY */
 ready.addEventListener("click",async()=>{
- if(!secureOK()){
-   msg("Camera and GPS require HTTPS.");
-   return;
- }
+  if(!secureContextOK()){
+    msg("Camera and GPS require HTTPS.");
+    return;
+  }
 
- if(!navigator.mediaDevices?.getUserMedia){
-   msg("This browser does not support camera access.");
-   return;
- }
+  if(!navigator.mediaDevices?.getUserMedia){
+    msg("This browser does not support camera access.");
+    return;
+  }
 
- ready.disabled=true;
- ready.textContent="STARTING...";
+  ready.disabled=true;
+  ready.textContent="STARTING...";
 
- const ok=await startCamera();
+  const ok=await startCamera();
 
- if(!ok){
-   ready.disabled=false;
-   ready.textContent="READY";
-   return;
- }
+  if(!ok){
+    ready.disabled=false;
+    ready.textContent="READY";
+    return;
+  }
 
- getGPS();
+  getGPS();
 
- if(gpsTimer)clearInterval(gpsTimer);
- gpsTimer=setInterval(getGPS,40000);
+  if(gpsTimer)clearInterval(gpsTimer);
+  gpsTimer=setInterval(getGPS,40000);
 
- ready.textContent="READY ✓";
+  ready.textContent="READY ✓";
 });
 
-switchCamera.addEventListener("click",switchCam);
+/* Camera switching. */
+switchCamera.addEventListener("click",switchCameraMode);
+
+/* Zoom. */
+zoomIn.addEventListener("click",()=>setZoom(zoomLevel+.5));
+zoomOut.addEventListener("click",()=>setZoom(zoomLevel-.5));
+
+/* Capture. */
 capture.addEventListener("click",capturePhoto);
 
-zoomIn.addEventListener("click",()=>setZoom(zoomLevel+.2));
-zoomOut.addEventListener("click",()=>setZoom(zoomLevel-.2));
-
+/* Form updates. */
 additional.addEventListener("input",updateLive);
 visitedBy.addEventListener("input",updateLive);
 
-logoInput.addEventListener("change",e=>loadLogo(e.target.files[0]));
-
-retake.addEventListener("click",async()=>{
- preview.style.display="none";
- const ok=await startCamera();
- if(ok)getGPS();
-});
-
-download.addEventListener("click",()=>{
- if(!imageUrl){
-   msg("There is no captured photo to download.");
-   return;
- }
-
- const a=document.createElement("a");
- a.href=imageUrl;
- a.download="GPS-PHOTO-PM-"+new Date().toISOString().slice(0,10)+".jpg";
- document.body.appendChild(a);
- a.click();
- a.remove();
+/* Logo upload. */
+logoInput.addEventListener("change",e=>{
+  loadLogo(e.target.files[0]);
 });
 
 window.addEventListener("beforeunload",()=>{
- if(gpsTimer)clearInterval(gpsTimer);
- stopCamera();
- if(imageUrl)URL.revokeObjectURL(imageUrl);
+  if(gpsTimer)clearInterval(gpsTimer);
+  stopCamera();
+  if(imageUrl)URL.revokeObjectURL(imageUrl);
 });
 </script>
+
 </body>
 </html>
