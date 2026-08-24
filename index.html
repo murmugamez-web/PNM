@@ -3,1496 +3,779 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111827">
+<meta name="theme-color" content="#A20404">
+<meta name="description" content="GPS Photo: Geo Tagging">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
 <title>GPS PHOTO: GEO TAGGING</title>
 <style>
+:root{--red:#A20404;--gold:#FBBC09;--bg:#111827;--card:#1f2937}
 *{box-sizing:border-box}
-html,body{margin:0;background:#f3f4f6;color:#111;font-family:Arial,sans-serif}
-header{background:#fff;padding:10px;border-bottom:1px solid #ddd;text-align:center}
-header h1{margin:0;font-size:20px}
-main{max-width:1100px;margin:auto;padding:12px}
-.card{background:#fff;border-radius:15px;padding:12px;box-shadow:0 2px 12px #0001}
-.camera{position:relative;background:#111;border-radius:12px;overflow:hidden;min-height:280px;display:flex;align-items:center;justify-content:center}
-#placeholder{color:#ddd;text-align:center;padding:25px}
-#placeholder .icon{font-size:55px}
-#video{display:none;width:100%;height:auto;max-height:78vh;object-fit:contain;background:#000;transform-origin:center center}
+html,body{margin:0;min-height:100%;background:#0b0f16;color:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{padding:10px}
+.app{width:min(1100px,100%);margin:auto}
+h1{font-size:clamp(22px,5vw,34px);margin:8px 0 12px;text-align:center}
+.camera-wrap{position:relative;width:100%;background:#000;border-radius:16px;overflow:hidden;aspect-ratio:4/3}
+#video{width:100%;height:100%;display:block;object-fit:contain;background:#000}
+.live-overlay{position:absolute;left:3%;right:3%;bottom:2.5%;background:rgba(255,255,255,.50);color:#000;border:2px solid var(--gold);border-radius:18px;padding:12px;text-align:center;pointer-events:none;font-family:Georgia,"Times New Roman",serif}
+.live-address{font-size:clamp(18px,4vw,30px);font-weight:700;line-height:1.15}
+.live-line{font-size:clamp(14px,3.2vw,24px);font-weight:700;line-height:1.2;margin-top:5px}
+.badge{position:absolute;right:3%;bottom:calc(2.5% + var(--live-overlay-height, 0px) + 8px);background:rgba(20,20,20,.82);border-radius:10px;padding:7px 10px;font-weight:800;font-size:13px}
+.badge img{width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-right:6px}
+.mapbox{position:absolute;right:3%;top:3%;width:120px;height:82px;border-radius:10px;background:rgba(20,20,20,.72);display:flex;align-items:center;justify-content:center;font-weight:800}
+.mapbox span{font-size:30px}
+.controls{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:12px 0}.control-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;width:100%}.zoom-row{display:flex;align-items:center;justify-content:center;gap:10px;width:100%}
+button,input,textarea{font:inherit}
+.controls button{width:52px;height:52px;border:0;border-radius:14px;background:#fff;color:#111;font-size:24px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.controls button:disabled{opacity:.45}
+.zoom-text{min-width:60px;text-align:center;font-weight:800}
+.form{display:grid;gap:10px;background:#fff;color:#111;padding:14px;border-radius:14px}
+.form label{font-weight:700}
+.form input,.form textarea{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:10px}
+.form textarea{min-height:70px;resize:vertical}
+.logo-row{display:flex;gap:12px;align-items:center}
+#logoPreview{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #ddd}
+.status{min-height:24px;text-align:center;color:#ffd166;margin:7px}
+.info-fab{position:fixed;right:14px;bottom:14px;width:48px;height:48px;border:0;border-radius:50%;background:var(--red);color:#fff;font-size:27px;font-weight:800;z-index:20}
+.usage{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:19;padding:18px;overflow:auto}
+.usage[hidden]{display:none}
+.usage-card{position:relative;max-width:720px;margin:4vh auto;background:#fff;color:#111;padding:22px;border-radius:16px;line-height:1.5}
+.usage-card h2{margin:0 0 10px}.usage-card h3{margin:16px 0 4px}
+.close{position:absolute;right:10px;top:10px;border:0;border-radius:50%;width:38px;height:38px}
+.error{background:#3b0d0d;border:1px solid #ef4444;color:#fecaca;padding:10px;border-radius:10px}
 .hidden{display:none!important}
-
-#liveMapCard{
- position:absolute;right:3%;top:3%;width:min(34%,220px);min-width:130px;height:105px;
- border-radius:9px;overflow:hidden;background:#222;color:#fff;text-decoration:none;
- box-shadow:0 3px 12px #0008;z-index:5
-}
-.mapThumb{position:absolute;inset:0;background:linear-gradient(35deg,transparent 45%,#c9d2c0 46% 49%,transparent 50%),linear-gradient(145deg,transparent 55%,#d8cbb5 56% 59%,transparent 60%),#b9c9ad}
-.mapGrid{position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 24%,#e7e1d5 25% 27%,transparent 28% 59%,#e7e1d5 60% 62%,transparent 63%),linear-gradient(0deg,transparent 0 28%,#e7e1d5 29% 31%,transparent 32% 68%,#e7e1d5 69% 71%,transparent 72%);opacity:.8}
-.mapRoad{position:absolute;background:#fff;height:6px;border-radius:10px;box-shadow:0 0 0 1px #c9c1b2}
-.road1{width:150%;left:-20%;top:48%;transform:rotate(-15deg)}
-.road2{width:120%;left:-10%;top:25%;transform:rotate(28deg)}
-.road3{width:100%;left:10%;top:72%;transform:rotate(7deg)}
-.mapPin{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%) rotate(-45deg);width:24px;height:24px;border-radius:50% 50% 50% 0;background:#e11d48;border:3px solid #fff;box-shadow:0 2px 5px #0008}
-.mapPin:after{content:"";position:absolute;width:7px;height:7px;background:#fff;border-radius:50%;left:6px;top:6px}
-.mapCaption{position:absolute;left:0;right:0;bottom:0;padding:5px 7px;background:#111c;font-size:12px;font-weight:800;text-align:center}
-
-#mapBadge{
- position:absolute;right:3%;background:#242424;color:#fff;padding:6px 9px;border-radius:7px;
- font-size:12px;font-weight:800;z-index:6;box-shadow:0 2px 8px #0007;display:flex;align-items:center;gap:6px
-}
-#liveMapCard+#mapBadge{top:calc(3% + 112px)}
-.badgeLogo{width:20px;height:20px;border-radius:4px;background:#fbbc09}
-
-#liveBox{
- display:none;position:absolute;left:3%;right:3%;bottom:3%;
- background:rgba(255,255,255,.50);border:2px solid #FBBC09;border-radius:12px;
- padding:9px;color:#000;font-family:Georgia,"Times New Roman",serif;pointer-events:none
-}
-.liveLine{font-weight:700;font-size:20px;line-height:1.15;margin:3px 0;text-align:center;overflow:hidden}
-
-.controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin-top:12px}
-button{
- border:0;border-radius:9px;padding:8px;min-height:46px;min-width:52px;width:52px;
- font-weight:800;font-size:24px;line-height:1;cursor:pointer
-}
-button:disabled{opacity:.45}
-#ready{background:#16a34a;color:#fff}
-#capture{background:#2563eb;color:#fff}
-.secondary{background:#e5e7eb}
-.zoom{background:#111827;color:#fff}
-.zoomText{align-self:center;font-weight:800;min-width:44px;text-align:center}
-
-label{display:block;font-weight:800;margin:14px 0 6px}
-input[type=text],input[type=file]{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:16px}
-input[type=file]{background:#f8fafc}
-#logoPreview{display:none;max-width:150px;max-height:80px;margin-top:7px;border:1px solid #bbb;border-radius:6px}
-#status{margin-top:10px;background:#f1f5f9;padding:10px;border-radius:8px;font-size:14px}
-.warning{background:#fff7ed!important;color:#9a3412}
-
-@media(max-width:600px){
- #liveMapCard{width:34vw;min-width:115px;height:82px}
- #liveMapCard+#mapBadge{top:calc(3% + 88px);font-size:10px;padding:5px 7px}
- .liveLine{font-size:15px}
-}
+@media(max-width:600px){body{padding:6px}.camera-wrap{border-radius:10px}.controls button{width:48px;height:48px}.form{padding:11px}}
 </style>
 </head>
 <body>
-<header><h1>GPS PHOTO: GEO TAGGING</h1></header>
+<div class="app">
+<h1>GPS PHOTO: GEO TAGGING</h1>
 
-<main>
-<div class="card">
- <div class="camera">
-  <div id="placeholder">
-   <div class="icon">📷</div>
-   <h2>GPS PHOTO: GEO TAGGING</h2>
-   <p>Press ▶️ to start.</p>
-  </div>
+<div id="error" class="error hidden"></div>
+<div id="status" class="status"></div>
 
+<div class="camera-wrap" id="cameraWrap">
   <video id="video" autoplay muted playsinline></video>
+  <div class="mapbox" id="liveMapBox"><span>📍</span></div>
+  <div class="badge"><img src="company-logo.jpg" alt="">PM Geotag Photo</div>
+  <div class="live-overlay">
+    <div class="live-address" id="liveAddress">Waiting for GPS…</div>
+    <div class="live-line" id="livePlus"></div>
+    <div class="live-line" id="liveLatLon"></div>
+    <div class="live-line" id="liveDateTime"></div>
+    <div class="live-line" id="liveAccuracy"></div>
+    <div class="live-line" id="liveAdditional"></div>
+    <div class="live-line" id="liveVisited"></div>
+  </div>
+</div>
 
-  <a id="liveMapCard" class="hidden" href="#" target="_blank" rel="noopener"
-     aria-label="Open current location in Google Maps">
-   <div class="mapThumb">
-    <div class="mapGrid"></div>
-    <div class="mapRoad road1"></div>
-    <div class="mapRoad road2"></div>
-    <div class="mapRoad road3"></div>
-    <div class="mapPin"></div>
-   </div>
-   <div class="mapCaption">📍 Google Maps</div>
-  </a>
+<div class="controls">
+  <div class="control-row">
+    <button id="ready" title="Ready" aria-label="Ready">▶️</button>
+    <button id="switchCamera" title="Switch camera" aria-label="Switch camera">🔄</button>
+    <button id="flash" title="Flashlight off" aria-label="Flashlight off">🔦</button>
+    <button id="capture" title="Capture photo" aria-label="Capture photo">📸</button>
+    <button id="gallery" title="Open photo gallery" aria-label="Open photo gallery">🖼️</button>
+  </div>
+  <div class="zoom-row">
+    <button id="zoomOut" title="Zoom out" aria-label="Zoom out">➖</button>
+    <span class="zoom-text" id="zoomText">1.0×</span>
+    <button id="zoomIn" title="Zoom in" aria-label="Zoom in">➕</button>
+  </div>
+</div>
 
-  <div id="mapBadge" class="hidden"><span>📷</span><span>PM Geotag Photo</span></div>
-  <div id="liveBox"><div id="liveLines"></div></div>
- </div>
+<div class="form">
+  <label>Additional Information
+    <textarea id="additionalInfo" placeholder="Optional"></textarea>
+  </label>
+  <label>Visited By
+    <input id="visitedBy" type="text" placeholder="Optional">
+  </label>
+  <label>Company Logo</label>
+  <div class="logo-row">
+    <img id="logoPreview" src="company-logo.jpg" alt="Logo preview">
+    <input id="logoInput" type="file" accept="image/png,image/jpeg,image/webp">
+  </div>
+</div>
+</div>
 
- <div class="controls">
-  <button id="ready" aria-label="Ready" title="Ready">▶️</button>
-  <button id="switchCamera" class="secondary hidden" aria-label="Switch camera" title="Switch camera">🔄</button>
-  <button id="zoomOut" class="zoom hidden" aria-label="Zoom out" title="Zoom out">➖</button>
-  <span id="zoomText" class="zoomText hidden" aria-hidden="true">1.0×</span>
-  <button id="zoomIn" class="zoom hidden" aria-label="Zoom in" title="Zoom in">➕</button>
-  <button id="flash" class="zoom hidden" aria-label="Flashlight: off" title="Flashlight: off">🔦</button>
-  <button id="capture" class="hidden" aria-label="Capture photo" title="Capture photo">📸</button>
- </div>
+<input id="galleryInput" type="file" accept="image/*" class="hidden" aria-label="Choose a photo from the gallery">
 
- <label for="additional">Additional Information</label>
- <input id="additional" type="text" placeholder="Enter additional information">
-
- <label for="visited">Visited By</label>
- <input id="visited" type="text" placeholder="Enter name">
-
- <label for="logo">Company Logo</label>
- <input id="logo" type="file" accept="image/png,image/jpeg,image/webp">
- <img id="logoPreview" alt="Logo preview">
-
- <div id="status">Press ▶️.</div>
- <div id="httpsWarning" class="warning hidden">
-  Camera and GPS require HTTPS. Publish this index.html on GitHub Pages, Netlify, or another HTTPS host.
+<button class="info-fab" id="infoButton" aria-label="Instructions" aria-expanded="false">ⓘ</button>
+<div class="usage" id="usage" hidden>
+ <div class="usage-card">
+  <button class="close" id="closeUsage" aria-label="Close">✕</button>
+  <h2>How to Use</h2>
+  <ol>
+   <li>Open this page over HTTPS.</li>
+   <li>Press ▶️ READY and allow camera and location permission.</li>
+   <li>Use 🔄 to switch between rear and front cameras.</li>
+   <li>Use 🔦 to switch flashlight OFF/ON when supported.</li>
+   <li>Use ➖ and ➕ to change zoom.</li>
+   <li>Enter Additional Information or Visited By if needed.</li>
+   <li>The supplied camera/location photo is the default badge and app icon. Upload another logo only if you want to replace it.</li>
+   <li>Press 📸. The final JPG is generated and downloaded automatically.</li>
+  </ol>
+  <h2>Install as App / Shortcut</h2>
+  <h3>Android Chrome</h3>
+  <p>Open the HTTPS page → ⋮ → Install app or Add to Home screen.</p>
+  <h3>iPhone / iPad Safari</h3>
+  <p>Open the HTTPS page → Share → Add to Home Screen → Add.</p>
+  <h3>Desktop Chrome / Edge</h3>
+  <p>Use Install or Create shortcut from the browser menu.</p>
+  <p><strong>Important:</strong> Camera and GPS require HTTPS.</p>
  </div>
 </div>
-</main>
 
 <script>
 "use strict";
 
 const $=id=>document.getElementById(id);
-
-const video=$("video"),placeholder=$("placeholder"),liveBox=$("liveBox"),liveLines=$("liveLines");
-const liveMapCard=$("liveMapCard"),mapBadge=$("mapBadge");
-const ready=$("ready"),switchCamera=$("switchCamera");
-const zoomOut=$("zoomOut"),zoomIn=$("zoomIn"),zoomText=$("zoomText"),flash=$("flash"),capture=$("capture");
-const additional=$("additional"),visited=$("visited"),logo=$("logo"),logoPreview=$("logoPreview");
-const status=$("status"),httpsWarning=$("httpsWarning");
+const video=$("video"), statusEl=$("status"), errorEl=$("error");
+const ready=$("ready"), switchCamera=$("switchCamera"), flash=$("flash");
+const capture=$("capture"), zoomOut=$("zoomOut"), zoomIn=$("zoomIn"), zoomText=$("zoomText");
+const additionalInfo=$("additionalInfo"), visitedBy=$("visitedBy");
+const gallery=$("gallery"), galleryInput=$("galleryInput");
+const logoInput=$("logoInput"), logoPreview=$("logoPreview");
+const liveOverlay=document.querySelector(".live-overlay");
+const liveAddress=$("liveAddress"), livePlus=$("livePlus"), liveLatLon=$("liveLatLon");
+const liveDateTime=$("liveDateTime"), liveAccuracy=$("liveAccuracy");
+const liveAdditional=$("liveAdditional"), liveVisited=$("liveVisited");
 
 let stream=null;
+let facingMode="environment";
+let gpsWatch=null;
 let gpsTimer=null;
-let facing="environment";
-let zoom=1;
-let flashMode="off"; // off, on, auto
-let flashSupported=false;
-let outputRotation=0;
-let deviceAngle=0;
-let motionPermissionRequested=false;
-let logoImage=null;
-let lastObjectUrl=null;
-let wasCameraActive=false;
-
-const gps={
- lat:null,lon:null,accuracy:null,address:"",
- countryCode:"",countryName:"",plusCode:""
+let gpsData={
+ lat:null,lon:null,accuracy:null,address:"Address unavailable",
+ countryCode:"",country:"",road:"",locality:"",district:"",state:"",
+ postcode:"",plusCode:""
 };
+let zoom=1;
+let flashOn=false;
+let logoImage=null;
 
-function isSecure(){
- return window.isSecureContext ||
-        location.hostname==="localhost" ||
-        location.hostname==="127.0.0.1";
-}
+const CODE_ALPHABET="23456789CFGHJMPQRVWX";
+const PAIR_RESOLUTIONS=[20,1,0.05,0.0025,0.000125];
 
-if(!isSecure()) httpsWarning.classList.remove("hidden");
-
-function setStatus(text){status.textContent=text}
+function setStatus(t){statusEl.textContent=t||""}
+function showError(t){errorEl.textContent=t;errorEl.classList.remove("hidden")}
+function clearError(){errorEl.classList.add("hidden");errorEl.textContent=""}
 
 function countryFlag(code){
- code=String(code||"").toUpperCase();
- if(!/^[A-Z]{2}$/.test(code)) return "";
- return String.fromCodePoint(...[...code].map(c=>127397+c.charCodeAt(0)));
+ if(!/^[a-z]{2}$/i.test(code||"")) return "";
+ return code.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
 }
 
-function getGMTOffset(d=new Date()){
- const minutes=-d.getTimezoneOffset();
- const sign=minutes>=0?"+":"-";
- const a=Math.abs(minutes);
- return "GMT"+sign+
-   String(Math.floor(a/60)).padStart(2,"0")+":"+
-   String(a%60).padStart(2,"0");
-}
-
-function dateTimeInfo(){
- const d=new Date();
- return {
-  day:d.toLocaleDateString(undefined,{weekday:"long"}),
-  date:d.toLocaleDateString("en-GB"),
-  time:d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit",hour12:true}),
-  gmt:getGMTOffset(d)
- };
-}
-
-/* Local Open Location Code / Plus Code generator */
-function generatePlusCode(lat,lon){
- const alphabet="23456789CFGHJMPQRVWX";
- lat=Number(lat);lon=Number(lon);
-
- if(!Number.isFinite(lat)||!Number.isFinite(lon)) return "";
-
+function normalizeLat(lat){
  lat=Math.max(-90,Math.min(90,lat));
- lon=((lon+180)%360+360)%360-180;
-
- if(lat===90) lat-=1e-12;
-
- lat+=90;
- lon+=180;
-
- const values=[20,1,.05,.0025,.000125];
- let code="";
-
- for(const v of values){
-  const a=Math.max(0,Math.min(19,Math.floor(lat/v)));
-  const b=Math.max(0,Math.min(19,Math.floor(lon/v)));
-  code+=alphabet[a]+alphabet[b];
-  lat-=a*v;
-  lon-=b*v;
- }
-
- return code.slice(0,8)+"+"+code.slice(8,10);
+ if(lat===90) return 90-1e-12;
+ if(lat===-90) return -90+1e-12;
+ return lat;
 }
 
-function wrapText(ctx,text,font,maxWidth){
- ctx.font=font;
- const words=String(text||"").trim().split(/\s+/);
- if(!words.length||!words[0]) return [];
+/* Open Location Code / Plus Code compatible 10-character code. */
+function encodePlusCode(lat,lon){
+ lat=normalizeLat(Number(lat)); lon=Number(lon);
+ if(!Number.isFinite(lat)||!Number.isFinite(lon)) return "";
+ lon=((lon+180)%360+360)%360-180;
+ let latVal=lat+90, lonVal=lon+180, code="";
+ for(let i=0;i<5;i++){
+   const res=PAIR_RESOLUTIONS[i];
+   const latDigit=Math.floor(latVal/res);
+   const lonDigit=Math.floor(lonVal/res);
+   code+=CODE_ALPHABET[latDigit]+CODE_ALPHABET[lonDigit];
+   latVal-=latDigit*res; lonVal-=lonDigit*res;
+   if(i===1) code+="+";
+ }
+ return code;
+}
 
- const lines=[];
- let line="";
+function clean(v){return String(v||"").trim().replace(/\s+/g," ")}
+function first(...v){return v.map(clean).find(Boolean)||""}
 
- for(const word of words){
-  const candidate=line?line+" "+word:word;
+function buildAddress(d){
+ const road=first(d.road,d.pedestrian,d.footway,d.residential);
+ const locality=first(d.locality,d.village,d.town,d.city,d.suburb,d.neighbourhood);
+ const district=first(d.district,d.county,d.municipality,d.state_district);
+ const state=first(d.state);
+ const pin=first(d.postcode);
+ const country=first(d.country);
+ const flag=countryFlag(d.countryCode);
+ const parts=[];
+ for(const x of [road,locality,district,state]){
+   if(x && !parts.some(p=>p.toLowerCase()===x.toLowerCase())) parts.push(x);
+ }
+ if(pin) parts.push(pin);
+ if(country) parts.push((flag?flag+" ":"")+country);
+ if(parts.length) return parts.join(", ");
+ return clean(d.address)||"Address unavailable";
+}
 
-  if(ctx.measureText(candidate).width<=maxWidth){
-   line=candidate;
-   continue;
-  }
-
-  if(line) lines.push(line);
-  line="";
-
-  if(ctx.measureText(word).width<=maxWidth){
-   line=word;
-  }else{
-   let piece="";
-   for(const ch of word){
-    if(ctx.measureText(piece+ch).width<=maxWidth){
-     piece+=ch;
-    }else{
-     if(piece) lines.push(piece);
-     piece=ch;
-    }
+function updateLive(){
+ const d=gpsData;
+ liveAddress.textContent=d.address||"Waiting for GPS…";
+ livePlus.textContent=d.plusCode||"";
+ liveLatLon.textContent=(d.lat!=null&&d.lon!=null)
+  ? `LATITUDE: ${d.lat.toFixed(6)}°   LONGITUDE: ${d.lon.toFixed(6)}°`:"";
+ const now=new Date();
+ const day=now.toLocaleDateString(undefined,{weekday:"long"});
+ const date=String(now.getDate()).padStart(2,"0")+"/"+String(now.getMonth()+1).padStart(2,"0")+"/"+now.getFullYear();
+ const time=now.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit",hour12:true});
+ const off=-now.getTimezoneOffset(), sign=off>=0?"+":"-";
+ liveDateTime.textContent=`${day} | DATE: ${date} | TIME: ${time} | GMT${sign}${String(Math.floor(Math.abs(off)/60)).padStart(2,"0")}:${String(Math.abs(off)%60).padStart(2,"0")}`;
+ liveAccuracy.textContent=d.accuracy!=null?`ACCURACY: ${Math.round(d.accuracy)} m`:"";
+ liveAdditional.textContent=clean(additionalInfo.value);
+ liveVisited.textContent=clean(visitedBy.value)?`Visited By: ${clean(visitedBy.value)}`:"";
+ requestAnimationFrame(()=>{
+   if(liveOverlay){
+     document.getElementById("cameraWrap").style.setProperty("--live-overlay-height", `${liveOverlay.offsetHeight}px`);
    }
-   line=piece;
-  }
+ });
+}
+
+if(window.ResizeObserver){
+ const ro=new ResizeObserver(()=>{
+   if(liveOverlay) document.getElementById("cameraWrap").style.setProperty("--live-overlay-height", `${liveOverlay.offsetHeight}px`);
+ });
+ ro.observe(liveOverlay);
+}
+
+async function reverseGeocode(lat,lon){
+ const previous={
+  address:gpsData.address, road:gpsData.road, locality:gpsData.locality,
+  district:gpsData.district, state:gpsData.state, postcode:gpsData.postcode,
+  country:gpsData.country, countryCode:gpsData.countryCode
+ };
+
+ function saveAddress(a, displayName=""){
+  const road=first(a.road,a.street,a.pedestrian,a.footway,a.residential);
+  const locality=first(a.locality,a.village,a.town,a.city,a.suburb,a.neighbourhood);
+  const district=first(a.district,a.county,a.municipality,a.state_district);
+  const state=first(a.state,a.principalSubdivision);
+  const postcode=first(a.postcode,a.postalCode);
+  const country=first(a.country,a.countryName);
+  const countryCode=first(a.country_code,a.countryCode).toLowerCase();
+  if(!(road||locality||district||state||postcode||country)) return false;
+  gpsData.road=road; gpsData.locality=locality; gpsData.district=district;
+  gpsData.state=state; gpsData.postcode=postcode; gpsData.country=country;
+  gpsData.countryCode=countryCode;
+  gpsData.address=buildAddress({road,locality,district,state,postcode,country,countryCode,address:displayName});
+  return gpsData.address && gpsData.address!=="Address unavailable";
  }
 
- if(line) lines.push(line);
- return lines;
+ // Provider 1: OpenStreetMap Nominatim.
+ try{
+  const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&zoom=18&accept-language=en`;
+  const r=await fetch(url,{headers:{"Accept":"application/json"},cache:"no-store"});
+  if(!r.ok) throw new Error("Nominatim HTTP "+r.status);
+  const j=await r.json();
+  if(saveAddress(j.address||{},j.display_name||"")){ setStatus("GPS and address available."); updateLive(); return; }
+ }catch(e){}
+
+ // Provider 2: Photon (no API key required) for road/street and locality fallback.
+ try{
+  const url=`https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+  const r=await fetch(url,{headers:{"Accept":"application/json"},cache:"no-store"});
+  if(!r.ok) throw new Error("Photon HTTP "+r.status);
+  const j=await r.json();
+  const p=j.features?.[0]?.properties||{};
+  if(saveAddress({
+    road:first(p.street,p.road), locality:first(p.city,p.town,p.village,p.suburb),
+    district:first(p.district,p.county), state:p.state, postcode:p.postcode,
+    country:p.country, countryCode:p.countrycode
+  },j.features?.[0]?.properties?.name||"")){ setStatus("GPS and address available."); updateLive(); return; }
+ }catch(e){}
+
+ // Provider 3: BigDataCloud client-side reverse geocoder (no API key required).
+ try{
+  const url=`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&localityLanguage=en`;
+  const r=await fetch(url,{cache:"no-store"});
+  if(!r.ok) throw new Error("BigDataCloud HTTP "+r.status);
+  const j=await r.json();
+  const li=Array.isArray(j.localityInfo?.informative)?j.localityInfo.informative:[];
+  const roadObj=li.find(x=>/road|street|highway/i.test(String(x.description||x.name||"")));
+  if(saveAddress({
+    road:roadObj?.name||"", locality:first(j.locality,j.city,j.principalSubdivision),
+    district:first(j.localityInfo?.administrative?.find(x=>/district|county/i.test(String(x.description||"")))?.name),
+    state:j.principalSubdivision, postcode:j.postcode, country:j.countryName,
+    countryCode:j.countryCode
+  },"")){ setStatus("GPS and address available."); updateLive(); return; }
+ }catch(e){}
+
+ // Preserve the last valid address if all providers are temporarily unavailable.
+ gpsData.address=previous.address||"Address unavailable";
+ gpsData.road=previous.road; gpsData.locality=previous.locality; gpsData.district=previous.district;
+ gpsData.state=previous.state; gpsData.postcode=previous.postcode; gpsData.country=previous.country;
+ gpsData.countryCode=previous.countryCode;
+ setStatus("GPS available. Address lookup temporarily unavailable.");
+ updateLive();
+}
+function applyPosition(pos){
+ const c=pos.coords;
+ gpsData.lat=Number(c.latitude);
+ gpsData.lon=Number(c.longitude);
+ gpsData.accuracy=Number(c.accuracy);
+ gpsData.plusCode=encodePlusCode(gpsData.lat,gpsData.lon);
+ updateLive();
+ reverseGeocode(gpsData.lat,gpsData.lon);
+}
+
+function startGPS(){
+ if(!navigator.geolocation){
+  showError("Location is not supported by this browser.");
+  return;
+ }
+ clearError();
+ navigator.geolocation.getCurrentPosition(applyPosition,e=>{
+  showError("Location permission denied. Allow Location access in browser settings.");
+ },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+
+ if(gpsWatch) navigator.geolocation.clearWatch(gpsWatch);
+ gpsWatch=navigator.geolocation.watchPosition(applyPosition,e=>{
+   setStatus("Waiting for a valid GPS update…");
+ },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+
+ clearInterval(gpsTimer);
+ gpsTimer=setInterval(()=>{
+  navigator.geolocation.getCurrentPosition(applyPosition,()=>{},{
+   enableHighAccuracy:true,timeout:15000,maximumAge:0
+  });
+ },40000);
 }
 
 function stopCamera(){
  if(stream){
-  stream.getTracks().forEach(track=>track.stop());
+  stream.getTracks().forEach(t=>t.stop());
+  stream=null;
  }
- stream=null;
- video.srcObject=null;
- liveBox.style.display="none";
 }
 
 async function startCamera(){
+ clearError();
+ stopCamera();
  try{
-  if(!navigator.mediaDevices?.getUserMedia){
-   setStatus("Camera is not supported by this browser.");
-   return false;
+  // Default camera is the phone's MAIN/REAR camera.
+  // Use an exact environment constraint first so Android/iOS selects
+  // the rear camera rather than a front/selfie camera.
+  let constraints;
+  if(facingMode === "environment"){
+   constraints={
+    video:{
+     facingMode:{exact:"environment"},
+     width:{ideal:1920},
+     height:{ideal:1080}
+    },
+    audio:false
+   };
+   try{
+    stream=await navigator.mediaDevices.getUserMedia(constraints);
+   }catch(firstError){
+    // A few browsers reject exact facingMode even when a rear camera exists.
+    // Fall back to an ideal environment request while still preferring rear.
+    stream=await navigator.mediaDevices.getUserMedia({
+     video:{
+      facingMode:{ideal:"environment"},
+      width:{ideal:1920},
+      height:{ideal:1080}
+     },
+     audio:false
+    });
+   }
+  }else{
+   stream=await navigator.mediaDevices.getUserMedia({
+    video:{
+     facingMode:{exact:"user"},
+     width:{ideal:1920},
+     height:{ideal:1080}
+    },
+    audio:false
+   });
   }
-
-  stopCamera();
-
-  stream=await navigator.mediaDevices.getUserMedia({
-   video:{
-    facingMode:{ideal:facing},
-    width:{ideal:1920},
-    height:{ideal:1080}
-   },
-   audio:false
-  });
 
   video.srcObject=stream;
   await video.play();
-
-  placeholder.style.display="none";
-  video.style.display="block";
-  liveBox.style.display="block";
-
-  switchCamera.classList.remove("hidden");
-  zoomOut.classList.remove("hidden");
-  zoomIn.classList.remove("hidden");
-  zoomText.classList.remove("hidden");
-  flash.classList.remove("hidden");
-  capture.classList.remove("hidden");
-
-  zoom=1;
-  video.style.transform="scale(1)";
-  updateZoomUI();
-
-  const cameraTrack=stream?.getVideoTracks?.()[0];
-  flashSupported=!!(cameraTrack?.getCapabilities?.().torch);
-  await applyFlashMode();
-
-  updateLiveOverlay();
-
-  wasCameraActive=true;
-  return true;
-
+  await applyZoom();
+  await applyFlash();
+  setStatus(facingMode === "environment" ? "Main rear camera ready." : "Front camera ready.");
  }catch(e){
-  if(e.name==="NotAllowedError"){
-   setStatus("Camera permission denied. Allow camera access in browser settings.");
-  }else{
-   setStatus("Camera error: "+(e.message||e.name));
-  }
-  return false;
+  showError("Camera permission denied or the selected camera is unavailable. Allow camera access in browser settings.");
  }
 }
 
-async function switchCameraMode(){
- facing=facing==="environment"?"user":"environment";
- await startCamera();
- getGPS();
-}
-
-function normalizeOrientationAngle(a){
- a=((Number(a)||0)%360+360)%360;
- if(a<45||a>=315) return 0;
- if(a<135) return 90;
- if(a<225) return 180;
- return 270;
-}
-
-function updateOrientationFromScreen(){
- try{
-  if(screen.orientation &&
-     Number.isFinite(screen.orientation.angle)){
-   deviceAngle=normalizeOrientationAngle(screen.orientation.angle);
-   outputRotation=deviceAngle;
-   updateLiveOverlay();
-  }
- }catch{}
-}
-
-function handleDeviceOrientation(e){
- const beta=Number(e.beta);
- const gamma=Number(e.gamma);
-
- if(!Number.isFinite(beta)||!Number.isFinite(gamma)) return;
-
- let angle=deviceAngle;
-
- if(Math.abs(gamma)>35){
-  angle=gamma>0?90:270;
- }else if(Math.abs(beta)>135){
-  angle=180;
- }else{
-  angle=0;
- }
-
- if(angle!==deviceAngle){
-  deviceAngle=angle;
-  outputRotation=angle;
-  updateLiveOverlay();
- }
-}
-
-async function startAutomaticOrientation(){
- if(motionPermissionRequested) return;
-
- motionPermissionRequested=true;
-
- try{
-  if(typeof DeviceOrientationEvent!=="undefined" &&
-     typeof DeviceOrientationEvent.requestPermission==="function"){
-
-   const result=await DeviceOrientationEvent.requestPermission();
-
-   if(result!=="granted"){
-    setStatus("Motion permission was not granted. Automatic photo orientation may be unavailable.");
-    return;
-   }
-  }
- }catch{}
-
- try{
-  window.addEventListener("deviceorientation",handleDeviceOrientation,true);
-
-  if(screen.orientation){
-   screen.orientation.addEventListener("change",updateOrientationFromScreen);
-  }
-
-  window.addEventListener("orientationchange",updateOrientationFromScreen);
- }catch{}
-
- updateOrientationFromScreen();
-}
-
-async function setZoom(value){
- value=Math.max(1,Math.min(8,value));
-
+async function applyZoom(){
  const track=stream?.getVideoTracks?.()[0];
-
- if(track){
-  try{
-   const capabilities=track.getCapabilities?.()||{};
-
-   if(capabilities.zoom){
-    const min=Number(capabilities.zoom.min??1);
-    const max=Math.min(8,Number(capabilities.zoom.max??8));
-    const step=Number(capabilities.zoom.step??.1);
-
-    value=Math.min(
-     max,
-     Math.max(min,Math.round(value/step)*step)
-    );
-
-    await track.applyConstraints({
-     advanced:[{zoom:value}]
-    });
-
-    video.style.transform="scale(1)";
-   }else{
-    video.style.transform="scale("+value+")";
-   }
-
-  }catch{
-   video.style.transform="scale("+value+")";
-  }
+ const caps=track?.getCapabilities?.()||{};
+ if(typeof caps.zoom==="number" || Array.isArray(caps.zoom)){
+   const min=Number(caps.zoom.min??1), max=Number(caps.zoom.max??8);
+   zoom=Math.max(min,Math.min(max,zoom));
+   try{await track.applyConstraints({advanced:[{zoom}]});}catch(e){}
  }
-
- zoom=value;
- updateZoomUI();
-}
-
-function updateZoomUI(){
  zoomText.textContent=zoom.toFixed(1)+"×";
- zoomOut.disabled=zoom<=1;
- zoomIn.disabled=zoom>=8;
 }
 
-
-function updateFlashUI(){
- if(!flash)return;
-
- const labels={
-  off:"Flashlight: off",
-  on:"Flashlight: on",
-  auto:"Flashlight: auto"
- };
-
- const icons={
-  off:"🔦",
-  on:"💡",
-  auto:"🔆"
- };
-
- flash.textContent=icons[flashMode];
- flash.title=labels[flashMode];
- flash.setAttribute("aria-label",labels[flashMode]);
-
- if(!flashSupported){
-  flash.disabled=true;
-  flash.title="Flashlight not supported by this camera/browser";
-  flash.setAttribute("aria-label",flash.title);
- }else{
-  flash.disabled=false;
- }
-}
-
-async function applyFlashMode(){
+async function applyFlash(){
  const track=stream?.getVideoTracks?.()[0];
-
- if(!track){
-  flashSupported=false;
-  updateFlashUI();
+ const caps=track?.getCapabilities?.()||{};
+ if(!caps.torch){
+  flash.title="Flashlight not supported";
+  flash.setAttribute("aria-label","Flashlight not supported");
   return;
  }
-
- const capabilities=track.getCapabilities?.()||{};
- flashSupported=!!capabilities.torch;
-
- if(!flashSupported){
-  updateFlashUI();
-  return;
- }
-
  try{
-  /*
-   * Browser camera torch support uses the MediaStreamTrack torch
-   * constraint. "Auto" is represented by torch=false because
-   * browsers generally expose only on/off torch control; the
-   * camera itself remains responsible for its automatic exposure.
-   */
-  const torch=flashMode==="on";
-  await track.applyConstraints({
-   advanced:[{torch:torch}]
-  });
- }catch(e){
-  setStatus("Flashlight mode is not supported by this camera/browser.");
- }
-
- updateFlashUI();
+  await track.applyConstraints({advanced:[{torch:flashOn}]});
+  flash.textContent=flashOn?"💡":"🔦";
+  flash.title=flashOn?"Flashlight on":"Flashlight off";
+  flash.setAttribute("aria-label",flash.title);
+ }catch(e){}
 }
 
-async function cycleFlash(){
- if(!stream){
-  setStatus("Start the camera first.");
-  return;
- }
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 
- flashMode =
-  flashMode==="off" ? "on" :
-  flashMode==="on" ? "auto" :
-  "off";
-
- await applyFlashMode();
-}
-
-async function reverseGeocode(lat,lon){
- try{
-  const url=
-   "https://nominatim.openstreetmap.org/reverse"+
-   "?format=jsonv2&addressdetails=1&zoom=18"+
-   "&lat="+encodeURIComponent(lat)+
-   "&lon="+encodeURIComponent(lon);
-
-  const response=await fetch(url,{
-   headers:{Accept:"application/json"}
-  });
-
-  if(!response.ok) throw Error("HTTP "+response.status);
-
-  const data=await response.json();
-  const a=data.address||{};
-
-  const first=(...values)=>{
-   for(const value of values){
-    const s=String(value||"").trim();
-    if(s) return s;
-   }
-   return "";
-  };
-
-  const add=(arr,value)=>{
-   value=String(value||"").trim();
-   if(value &&
-      !arr.some(x=>x.toLowerCase()===value.toLowerCase())){
-    arr.push(value);
-   }
-  };
-
-  const road=first(
-   a.road,
-   a.residential,
-   a.pedestrian,
-   a.footway,
-   a.path,
-   a.cycleway
-  );
-
-  /*
-   * Explicit address order:
-   * Road/Main Road + locality + district + state + PIN + country.
-   *
-   * If a road is unavailable, use the most useful available
-   * locality/area as the first component rather than leaving
-   * an empty road field.
-   */
-  const locality=first(
-   a.locality,
-   a.neighbourhood,
-   a.suburb,
-   a.hamlet,
-   a.village,
-   a.town,
-   a.city
-  );
-
-  const district=first(
-   a.city_district,
-   a.district,
-   a.county,
-   a.state_district
-  );
-
-  const state=first(a.state);
-  const pin=first(a.postcode);
-  const country=first(a.country);
-
-  gps.countryCode=String(
-   a.country_code||gps.countryCode||""
-  ).toUpperCase();
-
-  gps.countryName=country||gps.countryName||"";
-
-  const countryDisplay=country
-   ? ((countryFlag(gps.countryCode)||"")+" "+country).trim()
-   : "";
-
-  const parts=[];
-
-  if(road){
-   add(parts,road);
-  }else{
-   /*
-    * Proper fallback when no road is returned:
-    * use locality first, then district, so the address
-    * still starts with a meaningful geographic name.
-    */
-   add(parts,locality);
-  }
-
-  /*
-   * If road exists, locality follows it.
-   * If road was absent, locality may already be first.
-   */
-  if(road)add(parts,locality);
-
-  add(parts,district);
-  add(parts,state);
-  add(parts,pin);
-  add(parts,countryDisplay);
-
-  gps.address=parts.join(", ") ||
-              data.display_name ||
-              "Address unavailable";
-
-  updateLiveOverlay();
-
- }catch{
-  setStatus(
-   "GPS is working, but address lookup is temporarily unavailable."
-  );
- }
-}
-
-function applyPosition(position){
- gps.lat=position.coords.latitude;
- gps.lon=position.coords.longitude;
- gps.accuracy=position.coords.accuracy;
- gps.plusCode=generatePlusCode(gps.lat,gps.lon);
- updateLiveOverlay();
-}
-
-function getGPS(){
- if(!navigator.geolocation){
-  setStatus("Geolocation is not supported by this browser.");
-  return;
- }
-
- navigator.geolocation.getCurrentPosition(
-  position=>{
-   applyPosition(position);
-   reverseGeocode(position.coords.latitude,position.coords.longitude);
-   setStatus("GPS updated.");
-  },
-  error=>{
-   if(error.code===1){
-    setStatus(
-     "Location permission denied. Allow Location access in browser settings."
-    );
-   }else{
-    setStatus(
-     "GPS temporarily unavailable. Keeping the last valid position."
-    );
-   }
-  },
-  {
-   enableHighAccuracy:true,
-   timeout:15000,
-   maximumAge:0
-  }
- );
-}
-
-function freshGPS(){
- return new Promise((resolve,reject)=>{
-  if(!navigator.geolocation){
-   reject(Error("No geolocation"));
-   return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-   position=>{
-    applyPosition(position);
-    reverseGeocode(
-     position.coords.latitude,
-     position.coords.longitude
-    );
-    resolve(position);
-   },
-   reject,
-   {
-    enableHighAccuracy:true,
-    timeout:12000,
-    maximumAge:0
-   }
-  );
+async function freshGPS(){
+ if(!navigator.geolocation) return;
+ await new Promise(resolve=>{
+  navigator.geolocation.getCurrentPosition(pos=>{
+   applyPosition(pos); resolve();
+  },()=>resolve(),{enableHighAccuracy:true,timeout:7000,maximumAge:0});
  });
 }
 
-function updateGoogleMapCard(){
- if(gps.lat==null||gps.lon==null){
-  liveMapCard.classList.add("hidden");
-  mapBadge.classList.add("hidden");
-  return;
+function wrapText(ctx,text,maxWidth){
+ const words=String(text||"").split(/\s+/);
+ const lines=[]; let line="";
+ for(const w of words){
+  const test=line?line+" "+w:w;
+  if(ctx.measureText(test).width<=maxWidth || !line) line=test;
+  else {lines.push(line);line=w}
  }
-
- liveMapCard.href=
-  "https://www.google.com/maps/search/?api=1&query="+
-  encodeURIComponent(gps.lat+","+gps.lon);
-
- liveMapCard.classList.remove("hidden");
- mapBadge.classList.remove("hidden");
+ if(line) lines.push(line);
+ return lines.length?lines:[""];
 }
 
-function escapeHTML(text){
- return String(text).replace(/[&<>"]/g,c=>({
-  "&":"&amp;",
-  "<":"&lt;",
-  ">":"&gt;",
-  '"':"&quot;"
- }[c]));
+function fitOneLine(ctx,text,start,min,maxWidth){
+ let px=start;
+ while(px>min){
+  ctx.font=`700 ${px}px Georgia, "Times New Roman", serif`;
+  if(ctx.measureText(text).width<=maxWidth) return px;
+  px--;
+ }
+ return min;
 }
 
-function updateLiveOverlay(){
- if(!stream) return;
-
- const t=dateTimeInfo();
-
- const lines=[
-  gps.address||"Waiting for address...",
-  gps.plusCode||"—",
-  "LATITUDE: "+
-   (gps.lat==null?"—":gps.lat.toFixed(6)+"°")+
-   "   |   LONGITUDE: "+
-   (gps.lon==null?"—":gps.lon.toFixed(6)+"°"),
-  t.day+" | DATE: "+t.date+" | TIME: "+t.time+" | "+t.gmt,
-  "ACCURACY: "+
-   (gps.accuracy==null?"—":Math.round(gps.accuracy)+" m")
- ];
-
- if(additional.value.trim()){
-  lines.push(additional.value.trim());
- }
-
- if(visited.value.trim()){
-  lines.push("Visited By: "+visited.value.trim());
- }
-
- liveLines.innerHTML=lines.map(line=>
-  "<div class='liveLine'>"+escapeHTML(line)+"</div>"
- ).join("");
-
- updateGoogleMapCard();
-}
-
-logo.addEventListener("change",()=>{
- const file=logo.files?.[0];
-
- if(!file){
-  logoImage=null;
-  logoPreview.style.display="none";
-  return;
- }
-
- const reader=new FileReader();
-
- reader.onload=e=>{
-  const image=new Image();
-
-  image.onload=()=>{
-   logoImage=image;
-   logoPreview.src=e.target.result;
-   logoPreview.style.display="block";
-  };
-
-  image.src=e.target.result;
- };
-
- reader.readAsDataURL(file);
-});
-
-additional.addEventListener("input",updateLiveOverlay);
-visited.addEventListener("input",updateLiveOverlay);
-
-function roundedRect(ctx,x,y,w,h,r){
- r=Math.min(r,w/2,h/2);
+function roundRect(ctx,x,y,w,h,r){
  ctx.beginPath();
- ctx.moveTo(x+r,y);
- ctx.arcTo(x+w,y,x+w,y+h,r);
- ctx.arcTo(x+w,y+h,x,y+h,r);
- ctx.arcTo(x,y+h,x,y,r);
- ctx.arcTo(x,y,x+w,y,r);
- ctx.closePath();
-}
-
-/* The same PM Geotag Photo badge is rendered on the canvas/JPG. */
-function drawPMBrandBadge(ctx,x,y,w,h){
- ctx.save();
-
- roundedRect(ctx,x,y,w,h,Math.min(12,h/3));
- ctx.fillStyle="rgba(20,20,20,.88)";
- ctx.fill();
-
- const iconSize=Math.min(h-10,44);
- const ix=x+8;
- const iy=y+(h-iconSize)/2;
-
- roundedRect(ctx,ix,iy,iconSize,iconSize,5);
- ctx.fillStyle="#0ea5e9";
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(
-  ix+iconSize*.5,
-  iy+iconSize*.52,
-  iconSize*.25,
-  0,
-  Math.PI*2
- );
- ctx.fillStyle="#fbbc09";
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(
-  ix+iconSize*.5,
-  iy+iconSize*.52,
-  iconSize*.11,
-  0,
-  Math.PI*2
- );
- ctx.fillStyle="#111827";
- ctx.fill();
-
- ctx.beginPath();
- ctx.arc(
-  ix+iconSize*.73,
-  iy+iconSize*.30,
-  iconSize*.12,
-  0,
-  Math.PI*2
- );
- ctx.fillStyle="#ef233c";
- ctx.fill();
-
- ctx.fillStyle="#fff";
- ctx.font="bold "+
-  Math.max(16,Math.round(h*.38))+
-  "px Arial,sans-serif";
-
- ctx.textAlign="left";
- ctx.textBaseline="middle";
- ctx.fillText(
-  "PM Geotag Photo",
-  ix+iconSize+9,
-  y+h/2
- );
-
- ctx.restore();
-}
-
-async function capturePhoto(){
- if(!stream||!video.videoWidth){
-  setStatus("Camera is not ready.");
-  return;
- }
-
- capture.disabled=true;
- setStatus("Getting current GPS position...");
-
- try{
-  await freshGPS();
- }catch{}
-
- renderFinalPhoto();
-}
-
-function renderFinalPhoto(){
- if(gps.lat!=null&&gps.lon!=null){
-  gps.plusCode=generatePlusCode(gps.lat,gps.lon);
- }
-
- const sourceW=video.videoWidth;
- const sourceH=video.videoHeight;
-
- const border=Math.max(
-  6,
-  Math.round(Math.max(sourceW,sourceH)*.006)
- );
-
- const rotated=
-  outputRotation===90||outputRotation===270;
-
- const photoW=rotated?sourceH:sourceW;
- const photoH=rotated?sourceW:sourceH;
-
- const W=photoW+border*2;
- const H=photoH+border*2;
-
- const canvas=document.createElement("canvas");
- canvas.width=W;
- canvas.height=H;
-
- const ctx=canvas.getContext("2d");
-
- /* Draw the camera frame with automatic orientation. */
- ctx.save();
-
- if(outputRotation===90){
-  ctx.translate(W,0);
-  ctx.rotate(Math.PI/2);
- }else if(outputRotation===180){
-  ctx.translate(W,H);
-  ctx.rotate(Math.PI);
- }else if(outputRotation===270){
-  ctx.translate(0,H);
-  ctx.rotate(-Math.PI/2);
- }
-
- if(zoom<=1.001){
-  ctx.drawImage(
-   video,
-   border,
-   border,
-   sourceW,
-   sourceH
-  );
- }else{
-  const cropW=sourceW/zoom;
-  const cropH=sourceH/zoom;
-  const cropX=(sourceW-cropW)/2;
-  const cropY=(sourceH-cropH)/2;
-
-  ctx.drawImage(
-   video,
-   cropX,cropY,cropW,cropH,
-   border,border,sourceW,sourceH
-  );
- }
-
- ctx.restore();
-
- /* Deep-maroon photo border. */
- ctx.lineWidth=border;
- ctx.strokeStyle="#A20404";
- ctx.strokeRect(
-  border/2,
-  border/2,
-  W-border,
-  H-border
- );
-
- /*
-  Dynamic information-box renderer.
-  The box is 2.5% from the bottom and every text block
-  receives its own calculated height.
- */
- const panelW=Math.min(W-40,W*.92);
- const panelX=(W-panelW)/2;
-
- const pad=Math.max(22,Math.round(W*.025));
- const contentW=panelW-pad*2;
-
- const addressSize=48; // approximately 36pt at 96 CSS px/in conversion
- const bodySize=32;
- const gap=Math.max(7,Math.round(bodySize*.18));
- const blockGap=Math.max(10,Math.round(bodySize*.28));
- const topPad=Math.max(22,Math.round(bodySize*.7));
- const bottomPad=Math.max(22,Math.round(bodySize*.6));
-
- const addressFont=
-  "bold "+addressSize+"px Georgia,serif";
-
- const bodyFont=size=>
-  "bold "+size+"px Georgia,serif";
-
- const addressLines=wrapText(
-  ctx,
-  gps.address||"Address unavailable",
-  addressFont,
-  contentW
- );
-
- const plusLines=wrapText(
-  ctx,
-  gps.plusCode||"—",
-  bodyFont(bodySize),
-  contentW
- );
-
- /* Force Latitude + Longitude to one physical line. */
- const latLonText=
-  "LATITUDE: "+
-  (gps.lat==null?"—":gps.lat.toFixed(6)+"°")+
-  "   |   LONGITUDE: "+
-  (gps.lon==null?"—":gps.lon.toFixed(6)+"°");
-
- let latLonSize=bodySize;
-
- while(latLonSize>10){
-  ctx.font=bodyFont(latLonSize);
-
-  if(ctx.measureText(latLonText).width<=contentW){
-   break;
-  }
-
-  latLonSize--;
- }
-
- /* Force Day + Date + Time + GMT to one physical line. */
- const t=dateTimeInfo();
-
- const dateTimeText=
-  t.day+
-  " | DATE: "+t.date+
-  " | TIME: "+t.time+
-  " | "+t.gmt;
-
- let dateTimeSize=bodySize;
-
- while(dateTimeSize>10){
-  ctx.font=bodyFont(dateTimeSize);
-
-  if(ctx.measureText(dateTimeText).width<=contentW){
-   break;
-  }
-
-  dateTimeSize--;
- }
-
- const accuracyText=
-  "ACCURACY: "+
-  (gps.accuracy==null?"—":Math.round(gps.accuracy)+" m");
-
- const extra=additional.value.trim();
- const visitor=visited.value.trim();
-
- const extraLines=extra?
-  wrapText(ctx,extra,bodyFont(bodySize),contentW):[];
-
- const visitorLines=visitor?
-  wrapText(
-   ctx,
-   "Visited By: "+visitor,
-   bodyFont(bodySize),
-   contentW
-  ):[];
-
- /* Reserve only actual logo space. */
- let logoW=0;
- let logoH=0;
-
- if(logoImage){
-  const maxW=Math.min(contentW*.22,180);
-  const maxH=Math.min(H*.10,110);
-
-  const scale=Math.min(
-   maxW/logoImage.width,
-   maxH/logoImage.height,
-   1
-  );
-
-  logoW=logoImage.width*scale;
-  logoH=logoImage.height*scale;
- }
-
- const brandH=Math.max(
-  42,
-  Math.round(bodySize*1.35)
- );
-
- const brandW=Math.min(
-  Math.max(190,Math.round(W*.24)),
-  W*.38
- );
-
- function blockHeight(lines,size,spacing,extraHeight){
-  if(!lines.length)return 0;
-  return lines.length*size+
-         (lines.length-1)*spacing+
-         extraHeight;
- }
-
- let panelH=
-  topPad+
-  blockHeight(addressLines,addressSize,gap,blockGap)+
-  blockHeight(plusLines,bodySize,gap,blockGap)+
-  latLonSize+blockGap+
-  dateTimeSize+blockGap+
-  blockHeight([accuracyText],bodySize,gap,blockGap);
-
- if(extraLines.length){
-  panelH+=blockHeight(
-   extraLines,
-   bodySize,
-   gap,
-   blockGap
-  );
- }
-
- if(visitorLines.length){
-  panelH+=blockHeight(
-   visitorLines,
-   bodySize,
-   gap,
-   blockGap
-  );
- }
-
- if(logoImage){
-  panelH+=logoH+
-    Math.round(blockGap*.5);
- }
-
- panelH+=bottomPad;
-
- panelH=Math.min(
-  panelH,
-  H-border*2-16
- );
-
- const bottomGap=Math.max(18,H*.025);
-
- const panelY=Math.max(
-  border+8,
-  H-panelH-bottomGap
- );
-
- const brandX=panelX+panelW-brandW;
- const brandY=Math.max(
-  border+6,
-  panelY-brandH-8
- );
-
- /* Information box. */
- ctx.fillStyle="rgba(255,255,255,.50)";
-
- roundedRect(
-  ctx,
-  panelX,
-  panelY,
-  panelW,
-  panelH,
-  20
- );
-
- ctx.fill();
-
- ctx.lineWidth=Math.max(
-  2,
-  Math.round(W*.002)
- );
-
- ctx.strokeStyle="#FBBC09";
- ctx.stroke();
-
- /* Badge right edge exactly aligns with information box. */
- drawPMBrandBadge(
-  ctx,
-  brandX,
-  brandY,
-  brandW,
-  brandH
- );
-
- /* All final text is centered. */
- ctx.fillStyle="#000";
- ctx.textAlign="center";
- ctx.textBaseline="alphabetic";
-
- const centerX=panelX+panelW/2;
- let y=panelY+topPad;
-
- function drawLines(lines,font,size){
-  ctx.font=font;
-
-  for(const line of lines){
-   y+=size;
-   ctx.fillText(line,centerX,y);
-   y+=gap;
-  }
-
-  y+=blockGap-gap;
- }
-
- /* Address: 36pt-equivalent large canvas font. */
- drawLines(
-  addressLines,
-  addressFont,
-  addressSize
- );
-
- /* Plus Code separate from address. */
- drawLines(
-  plusLines,
-  bodyFont(bodySize),
-  bodySize
- );
-
- /* Latitude + Longitude: one physical line. */
- ctx.font=bodyFont(latLonSize);
- y+=latLonSize;
- ctx.fillText(latLonText,centerX,y);
- y+=blockGap;
-
- /* Day + Date + Time + GMT: one physical line. */
- ctx.font=bodyFont(dateTimeSize);
- y+=dateTimeSize;
- ctx.fillText(dateTimeText,centerX,y);
- y+=blockGap;
-
- /* Accuracy. */
- drawLines(
-  [accuracyText],
-  bodyFont(bodySize),
-  bodySize
- );
-
- /* Additional information. */
- if(extraLines.length){
-  drawLines(
-   extraLines,
-   bodyFont(bodySize),
-   bodySize
-  );
- }
-
- /* Visited By. */
- if(visitorLines.length){
-  drawLines(
-   visitorLines,
-   bodyFont(bodySize),
-   bodySize
-  );
- }
-
- /*
-  Company logo is bottom-right.
-  It does not change text alignment and only consumes
-  its actual required area.
- */
- if(logoImage){
-  const lx=
-   panelX+
-   panelW-
-   pad-
-   logoW;
-
-  const ly=
-   panelY+
-   panelH-
-   bottomPad-
-   logoH;
-
-  ctx.drawImage(
-   logoImage,
-   lx,
-   ly,
-   logoW,
-   logoH
-  );
- }
-
- canvas.toBlob(blob=>{
-  if(!blob){
-   setStatus("Could not create JPG.");
-   capture.disabled=false;
-   return;
-  }
-
-  if(lastObjectUrl){
-   URL.revokeObjectURL(lastObjectUrl);
-  }
-
-  lastObjectUrl=URL.createObjectURL(blob);
-
-  const a=document.createElement("a");
-  const d=new Date();
-
-  a.href=lastObjectUrl;
-
-  a.download=
-   "GPS-PHOTO-"+
-   d.getFullYear()+"-"+
-   String(d.getMonth()+1).padStart(2,"0")+"-"+
-   String(d.getDate()).padStart(2,"0")+"-"+
-   String(d.getHours()).padStart(2,"0")+"-"+
-   String(d.getMinutes()).padStart(2,"0")+"-"+
-   String(d.getSeconds()).padStart(2,"0")+
-   ".jpg";
-
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-
-  setStatus("Photo captured and downloaded automatically.");
-
-  /*
-   Restart the camera after capture so the user can immediately
-   capture another photo. GPS continues independently.
-  */
-  setTimeout(async()=>{
-   const currentFacing=facing;
-   const currentZoom=zoom;
-
-   const ok=await startCamera();
-
-   facing=currentFacing;
-
-   if(ok){
-    await setZoom(currentZoom);
-    getGPS();
-    setStatus("Ready for the next photo.");
-   }
-
-   capture.disabled=false;
-  },500);
-
- },"image/jpeg",.94);
+ ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+ ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);
+ ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
 }
 
 /*
-==========================================================
-CAMERA RECOVERY AFTER APP/BROWSER SWITCH
-==========================================================
+  CRITICAL ORIENTATION RULE:
+  DO NOT rotate the captured video based on screen.orientation.angle.
 
-Mobile browsers can suspend or release the camera stream when
-the page is backgrounded. READY remains visible and enabled.
-When the page returns, the code checks the camera track and
-automatically restarts it if necessary.
+  getUserMedia() supplies the camera frame with its own actual pixel
+  orientation. Rotating it again is what caused the landscape photograph
+  to become a portrait photograph.
+
+  Therefore:
+  - canvas width = video.videoWidth
+  - canvas height = video.videoHeight
+  - draw the video directly, with NO 90°/270° transform.
+  - draw the information box afterward on that SAME canvas.
+
+  This guarantees the overlay and the photo always share the exact same
+  coordinate system.
 */
+function renderFinalCanvas(){
+ if(!video.videoWidth||!video.videoHeight) return null;
+
+ const W=video.videoWidth;
+ const H=video.videoHeight;
+ const canvas=document.createElement("canvas");
+ canvas.width=W;
+ canvas.height=H;
+ const ctx=canvas.getContext("2d");
+
+ // Draw the camera frame exactly as supplied by getUserMedia.
+ ctx.drawImage(video,0,0,W,H);
+
+ const scale=Math.min(W,H)/900;
+ const pad=Math.max(18,Math.round(24*scale));
+ const border=Math.max(2,Math.round(3*scale));
+
+ // Photo border.
+ ctx.strokeStyle="#A20404";
+ ctx.lineWidth=border;
+ ctx.strokeRect(border/2,border/2,W-border,H-border);
+
+ const boxW=W-pad*2;
+ const targetAddress=Math.round(36*scale);
+ const normal=Math.round(24*scale);
+ const minNormal=14;
+ const contentW=boxW-pad*2;
+
+ const address=buildAddress(gpsData);
+ const plus=gpsData.plusCode||"";
+ const lat=gpsData.lat!=null?gpsData.lat.toFixed(6):"--";
+ const lon=gpsData.lon!=null?gpsData.lon.toFixed(6):"--";
+ const latLon=`LATITUDE: ${lat}°   LONGITUDE: ${lon}°`;
+
+ const now=new Date();
+ const day=now.toLocaleDateString(undefined,{weekday:"long"});
+ const date=String(now.getDate()).padStart(2,"0")+"/"+String(now.getMonth()+1).padStart(2,"0")+"/"+now.getFullYear();
+ const time=now.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit",hour12:true});
+ const off=-now.getTimezoneOffset(),sgn=off>=0?"+":"-";
+ const gmt=`GMT${sgn}${String(Math.floor(Math.abs(off)/60)).padStart(2,"0")}:${String(Math.abs(off)%60).padStart(2,"0")}`;
+ const dt=`${day} | DATE: ${date} | TIME: ${time} | ${gmt}`;
+ const acc=`ACCURACY: ${gpsData.accuracy!=null?Math.round(gpsData.accuracy)+" m":"--"}`;
+ const add=clean(additionalInfo.value);
+ const vis=clean(visitedBy.value)?`Visited By: ${clean(visitedBy.value)}`:"";
+
+ function setFont(px){ctx.font=`700 ${px}px Georgia, "Times New Roman", serif`}
+
+ // Calculate exact wrapped heights first.
+ let addressPx=targetAddress;
+ let addressLines;
+ do{
+  setFont(addressPx);
+  addressLines=wrapText(ctx,address,contentW);
+  if(addressLines.length<=4||addressPx<=20) break;
+  addressPx--;
+ }while(true);
+
+ const plusPx=fitOneLine(ctx,plus,normal,minNormal,contentW);
+ const latPx=fitOneLine(ctx,latLon,normal,minNormal,contentW);
+ const dtPx=fitOneLine(ctx,dt,normal,minNormal,contentW);
+
+ setFont(normal);
+ const addLines=add?wrapText(ctx,add,contentW):[];
+ const visLines=vis?wrapText(ctx,vis,contentW):[];
+
+ const lh=1.18;
+ const gap=Math.max(8,Math.round(10*scale));
+
+ let contentH=pad;
+ contentH+=addressLines.length*addressPx*lh+gap;
+ contentH+=plusPx*lh+gap;
+ contentH+=latPx*lh+gap;
+ contentH+=dtPx*lh+gap;
+ contentH+=normal*lh+gap;
+ if(addLines.length) contentH+=addLines.length*normal*lh+gap;
+ if(visLines.length) contentH+=visLines.length*normal*lh+gap;
+
+ // Logo only consumes its real displayed height.
+ let logoW=0,logoH=0;
+ if(logoImage&&logoImage.complete&&logoImage.naturalWidth){
+  const maxW=Math.min(boxW*.18,150*scale);
+  const maxH=Math.min(H*.12,100*scale);
+  const s=Math.min(maxW/logoImage.naturalWidth,maxH/logoImage.naturalHeight);
+  logoW=logoImage.naturalWidth*s; logoH=logoImage.naturalHeight*s;
+  contentH+=logoH+gap;
+ }
+ contentH+=pad;
+
+ const boxH=Math.min(contentH,H*.78);
+ const bottomOffset=H*.025;
+ const boxX=pad;
+ const boxY=H-bottomOffset-boxH;
+
+ // PM badge above the box.
+ const badgeW=Math.min(250*scale,W*.30);
+ const badgeH=Math.max(44,48*scale);
+ const badgeX=W-pad-badgeW;
+ const badgeY=Math.max(pad,boxY-badgeH-6);
+
+ // Map box top-right.
+ const mapW=Math.min(180*scale,W*.20);
+ const mapH=mapW*.68;
+ const mapX=W-pad-mapW, mapY=pad;
+
+ // Simple no-API-key map box.
+ ctx.fillStyle="rgba(20,20,20,.78)";
+ roundRect(ctx,mapX,mapY,mapW,mapH,12*scale);ctx.fill();
+ ctx.fillStyle="#fff";ctx.font=`700 ${Math.max(24,28*scale)}px sans-serif`;
+ ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("📍",mapX+mapW/2,mapY+mapH/2);
+
+ // Badge using the same supplied photo.
+ ctx.fillStyle="rgba(20,20,20,.84)";
+ roundRect(ctx,badgeX,badgeY,badgeW,badgeH,10*scale);ctx.fill();
+ ctx.fillStyle="#fff";ctx.textAlign="center";ctx.textBaseline="middle";
+ ctx.font=`700 ${Math.max(14,17*scale)}px sans-serif`;
+ ctx.fillText("PM Geotag Photo",badgeX+badgeW/2,badgeY+badgeH/2);
+
+ // Information box.
+ ctx.fillStyle="rgba(255,255,255,.50)";
+ ctx.strokeStyle="#FBBC09";ctx.lineWidth=Math.max(2,2*scale);
+ roundRect(ctx,boxX,boxY,boxW,boxH,20*scale);ctx.fill();ctx.stroke();
+
+ // Sequential centered rendering.
+ ctx.fillStyle="#000";ctx.textAlign="center";ctx.textBaseline="top";
+ let y=boxY+pad;
+
+ setFont(addressPx);
+ for(const line of addressLines){ctx.fillText(line,W/2,y);y+=addressPx*lh}
+ y+=gap;
+
+ setFont(plusPx);ctx.fillText(plus,W/2,y);y+=plusPx*lh+gap;
+
+ setFont(latPx);ctx.fillText(latLon,W/2,y);y+=latPx*lh+gap;
+
+ setFont(dtPx);ctx.fillText(dt,W/2,y);y+=dtPx*lh+gap;
+
+ setFont(normal);ctx.fillText(acc,W/2,y);y+=normal*lh+gap;
+
+ for(const line of addLines){ctx.fillText(line,W/2,y);y+=normal*lh}
+ if(addLines.length)y+=gap;
+
+ for(const line of visLines){ctx.fillText(line,W/2,y);y+=normal*lh}
+
+ // Logo is bottom-right, inside box, without changing text alignment.
+ if(logoW&&logoH){
+  const lx=boxX+boxW-pad-logoW;
+  const ly=boxY+boxH-pad-logoH;
+  ctx.drawImage(logoImage,lx,ly,logoW,logoH);
+ }
+
+ return canvas;
+}
+
+function downloadCanvas(canvas){
+ const now=new Date(),p=n=>String(n).padStart(2,"0");
+ const name=`GPS-PHOTO-${now.getFullYear()}-${p(now.getMonth()+1)}-${p(now.getDate())}-${p(now.getHours())}-${p(now.getMinutes())}-${p(now.getSeconds())}.jpg`;
+ canvas.toBlob(blob=>{
+  if(!blob){setStatus("Could not create JPG.");return}
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  setStatus("Photo captured and downloaded.");
+ },"image/jpeg",.94);
+}
+
+async function capturePhoto(){
+ if(!stream||!video.videoWidth){setStatus("Camera is not ready.");return}
+ setStatus("Updating GPS…");
+ await freshGPS();
+ if(gpsData.lat!=null) gpsData.plusCode=encodePlusCode(gpsData.lat,gpsData.lon);
+ updateLive();
+
+ // Wait for a fresh decoded video frame.
+ if(video.readyState<2) await sleep(250);
+
+ const canvas=renderFinalCanvas();
+ if(canvas) downloadCanvas(canvas);
+ restartAfterCapture();
+}
+
+async function restartAfterCapture(){
+ const keepFacing=facingMode;
+ await sleep(250);
+ if(stream && stream.getVideoTracks().some(t=>t.readyState==="live")) return;
+ facingMode=keepFacing;
+ await startCamera();
+}
+
+ready.addEventListener("click",async()=>{
+ clearError();
+ if(!window.isSecureContext && location.hostname!=="localhost" && location.hostname!=="127.0.0.1"){
+  showError("Camera and GPS require HTTPS. Publish this index.html on GitHub Pages, Netlify, or another HTTPS host.");
+  return;
+ }
+ startGPS();
+ await startCamera();
+});
+
+switchCamera.addEventListener("click",async()=>{
+ facingMode=facingMode==="environment"?"user":"environment";
+ await startCamera();
+});
+
+flash.addEventListener("click",async()=>{
+ if(!stream)return;
+ flashOn=!flashOn;
+ await applyFlash();
+});
+
+zoomOut.addEventListener("click",async()=>{
+ zoom=Math.max(1,Math.round((zoom-.2)*10)/10);
+ await applyZoom();
+});
+
+zoomIn.addEventListener("click",async()=>{
+ zoom=Math.min(8,Math.round((zoom+.2)*10)/10);
+ await applyZoom();
+});
+
+capture.addEventListener("click",capturePhoto);
+
+// Web pages cannot directly open the phone's private Gallery app.
+// This button opens the native image/photo picker, which on Android/iOS
+// normally presents the user's Photos/Gallery.
+gallery.addEventListener("click",()=>galleryInput.click());
+galleryInput.addEventListener("change",()=>{
+  const file=galleryInput.files?.[0];
+  if(file) setStatus("Photo selected from gallery.");
+});
+
+additionalInfo.addEventListener("input",updateLive);
+visitedBy.addEventListener("input",updateLive);
+
+logoInput.addEventListener("change",()=>{
+ const file=logoInput.files?.[0];
+ if(!file)return;
+ const url=URL.createObjectURL(file);
+ const img=new Image();
+ img.onload=()=>{
+  logoImage=img;
+  logoPreview.src=url;
+  updateLive();
+ };
+ img.src=url;
+});
 
 document.addEventListener("visibilitychange",async()=>{
- if(document.visibilityState==="hidden"){
-  wasCameraActive=!!stream;
-  return;
- }
-
  if(document.visibilityState==="visible"){
-  ready.disabled=false;
-  ready.classList.remove("hidden");
-
-  if(!wasCameraActive)return;
-
-  try{
-   const tracks=stream?.getVideoTracks?.()||[];
-   const live=tracks.some(
-    track=>track.readyState==="live"
-   );
-
-   if(!live||!video.srcObject){
-    setStatus(
-     "Camera resumed. Restarting camera..."
-    );
-
-    const ok=await startCamera();
-
-    if(ok){
-     await setZoom(zoom);
-     updateOrientationFromScreen();
-     getGPS();
-     setStatus("Camera ready.");
-    }
-
-   }else{
-    try{
-     await video.play();
-    }catch{}
-
-    updateLiveOverlay();
-    setStatus("Camera ready.");
-   }
-
-  }catch{
-   setStatus(
-    "Camera needs to be restarted. Press ▶️."
-   );
+  if(!stream || !stream.getVideoTracks().some(t=>t.readyState==="live")){
+   setStatus("Camera needs to be restarted. Press ▶️ READY.");
   }
  }
 });
-
-window.addEventListener("pageshow",async()=>{
- ready.disabled=false;
- ready.classList.remove("hidden");
-
- if(!wasCameraActive)return;
-
- try{
-  const tracks=stream?.getVideoTracks?.()||[];
-  const live=tracks.some(
-   track=>track.readyState==="live"
-  );
-
-  if(!live||!video.srcObject){
-   const ok=await startCamera();
-
-   if(ok){
-    await setZoom(zoom);
-    updateOrientationFromScreen();
-    getGPS();
-   }
-
-  }else{
-   try{
-    await video.play();
-   }catch{}
-
-   updateLiveOverlay();
-  }
-
- }catch{}
+window.addEventListener("pageshow",()=>{
+ if(!stream)setStatus("Press ▶️ READY to start the camera.");
 });
 
-window.addEventListener("focus",()=>{
- ready.disabled=false;
- ready.classList.remove("hidden");
+$("infoButton").addEventListener("click",()=>{
+ const panel=$("usage");
+ panel.hidden=false;
+ $("infoButton").setAttribute("aria-expanded","true");
 });
-
-/* READY is always available. */
-ready.addEventListener("click",async()=>{
- ready.disabled=false;
-
- if(!isSecure()){
-  httpsWarning.classList.remove("hidden");
-  setStatus("Camera and GPS require HTTPS.");
-  return;
- }
-
- const ok=await startCamera();
-
- if(!ok){
-  ready.disabled=false;
-  return;
- }
-
- wasCameraActive=true;
-
- await startAutomaticOrientation();
- updateOrientationFromScreen();
- getGPS();
-
- if(gpsTimer)clearInterval(gpsTimer);
-
- gpsTimer=setInterval(()=>{
-  if(stream)getGPS();
- },40000);
-
- setStatus("Camera and GPS ready.");
+$("closeUsage").addEventListener("click",()=>{
+ $("usage").hidden=true;
+ $("infoButton").setAttribute("aria-expanded","false");
 });
-
-switchCamera.addEventListener(
- "click",
- switchCameraMode
-);
-
-zoomOut.addEventListener(
- "click",
- ()=>setZoom(zoom-.5)
-);
-
-zoomIn.addEventListener(
- "click",
- ()=>setZoom(zoom+.5)
-);
-
-flash.addEventListener(
- "click",
- cycleFlash
-);
-
-capture.addEventListener(
- "click",
- capturePhoto
-);
-
-window.addEventListener("beforeunload",()=>{
- if(gpsTimer)clearInterval(gpsTimer);
- stopCamera();
-
- if(lastObjectUrl){
-  URL.revokeObjectURL(lastObjectUrl);
+$("usage").addEventListener("click",e=>{
+ if(e.target===$("usage")){
+  $("usage").hidden=true;
+  $("infoButton").setAttribute("aria-expanded","false");
  }
 });
+
+const defaultLogo=new Image();
+defaultLogo.onload=()=>{
+ logoImage=defaultLogo;
+ logoPreview.src=defaultLogo.src;
+};
+defaultLogo.src="company-logo.jpg";
+
+if(!window.isSecureContext && location.hostname!=="localhost" && location.hostname!=="127.0.0.1"){
+ showError("Camera and GPS require HTTPS. Publish this index.html on GitHub Pages, Netlify, or another HTTPS host.");
+}else{
+ setStatus("Press ▶️ READY to start.");
+}
+
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
 </script>
 </body>
 </html>
